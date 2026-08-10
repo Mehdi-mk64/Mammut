@@ -1,0 +1,18 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Entities.Base
+{
+    public interface IEntity
+    {
+
+    }
+
+    public abstract class BaseEntities<TKey> : IEntity
+    {
+        public TKey ID { get; set; }
+    }
+}
