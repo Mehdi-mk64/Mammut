@@ -1,6 +1,7 @@
 ﻿using DAL.Repository;
 using DAL.Repository.Basic.Personal;
 using DAL.Repository.Basic.Security;
+using DAL.Repository.Basic.SMS;
 using Entities.Basic.Personel;
 using Entities.Basic.Security;
 using Entities.Basic.SMS;
@@ -23,17 +24,14 @@ namespace SMSAPI.Controller.SMS
 
         private readonly AccesseGroupRepository _accesseGroupRepository;
         private readonly GroupRepository _groupRepository;
+        private readonly MessageSendRepository _messageSendRepository;
 
-        public MessageSendController(
-            IRepository<MessageSend> repository,
-            AccesseGroupRepository accesseGroupRepository,
-            GroupRepository groupRepository)
-            : base(repository)
+        public MessageSendController(IRepository<MessageSend> repository, AccesseGroupRepository accesseGroupRepository,GroupRepository groupRepository, MessageSendRepository messageSendRepository): base(repository)
         {
             _accesseGroupRepository = accesseGroupRepository;
             _groupRepository = groupRepository;
+            _messageSendRepository = messageSendRepository;
         }
-
 
 
         [Authorize]
@@ -85,11 +83,20 @@ namespace SMSAPI.Controller.SMS
                         SendImportanceID = model.SendImportanceID
                     };
 
-                    await _repository.AddAsync(
-                        messageSend,
-                        cancellationToken);
+                    var result =  await _messageSendRepository.SendAsync( messageSend, cancellationToken);
 
-                    successCount++;
+                    if (result.Status)
+                    {
+                        successCount++;
+                    }
+                    else
+                    {
+                        failedCount++;
+                        failedPhones.Add(phone.PhoneNumber);
+                    }
+
+
+
                 }
                 catch (Exception)
                 {

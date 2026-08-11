@@ -48,10 +48,7 @@ namespace DAL.Repository.Basic.SMS
 
             if (sendDateTime.HasValue)
             {
-                long unixTime =
-                    new DateTimeOffset(sendDateTime.Value)
-                        .ToUnixTimeSeconds();
-
+                long unixTime =new DateTimeOffset(sendDateTime.Value).ToUnixTimeSeconds();
                 sendDateTimeservice = (int)unixTime;
             }
 
@@ -115,6 +112,64 @@ namespace DAL.Repository.Basic.SMS
         //    await resaultMsg;
         //}
 
+        public async Task<Entities.DTO.SmsIrResault> SendAsync(MessageSend entity, CancellationToken cancellationToken)
+        {
+            entity.InsertDateTime = DateTime.Now;
+
+            var phone = await TableNoTrackingOf<PhonNumbers>()
+                .Where(x => x.ID == entity.PhoneNumberID)
+                .Select(x => x.Nummber)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            if (string.IsNullOrWhiteSpace(phone))
+                throw new Exception("شماره تلفن موردنظر پیدا نشد.");
+
+            await base.AddAsync(entity,cancellationToken,saveNow: true);
+            try
+            {
+                var result = await SendBulkAsync(entity.Message,phone, entity.DateTimeSend);
+
+                var messageLog = new MessageLog
+                {
+                    MessageSendID = entity.ID,
+                    ActionDateTime = DateTime.Now,
+
+                    SendStatusID = result.Status ? (byte)Common.SendStatusType.API_OK : (byte)Common.SendStatusType.SendAgain,
+
+                    StatusCodeReturn = result.StatusCode.ToString(),
+                    SendActive = true,
+                    IsComplete = result.Status,
+
+                    Description = result.Status ? "پیامک با موفقیت ارسال شد."  : "ارسال پیامک ناموفق بود."
+                };
+
+                await _messageLogRepository.AddAsync(messageLog, cancellationToken);
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var messageLog = new MessageLog
+                {
+                    MessageSendID = entity.ID,
+                    ActionDateTime = DateTime.Now,
+                    SendStatusID = (byte)Common.SendStatusType.SendAgain,
+                    StatusCodeReturn = "EXCEPTION",
+                    SendActive = true,
+                    IsComplete = false,
+                    Description = ex.Message
+                };
+
+                await _messageLogRepository.AddAsync(messageLog, cancellationToken);
+
+                throw;
+            }
+        }
+
+
+
+
+
 
 
         public override async Task AddAsync(MessageSend entity, CancellationToken cancellationToken, bool saveNow = true)
@@ -136,10 +191,7 @@ namespace DAL.Repository.Basic.SMS
 
             try
             {
-                var result = await SendBulkAsync(
-                    entity.Message,
-                    phone,
-                    entity.DateTimeSend);
+                var result = await SendBulkAsync(entity.Message,phone, entity.DateTimeSend);
 
                 var messageLog = new MessageLog
                 {
@@ -160,9 +212,7 @@ namespace DAL.Repository.Basic.SMS
                         : "ارسال پیامک ناموفق بود."
                 };
 
-                await _messageLogRepository.AddAsync(
-                    messageLog,
-                    cancellationToken);
+                await _messageLogRepository.AddAsync(messageLog, cancellationToken);
             }
             catch (Exception ex)
             {
@@ -183,9 +233,7 @@ namespace DAL.Repository.Basic.SMS
                     Description = ex.Message
                 };
 
-                await _messageLogRepository.AddAsync(
-                    messageLog,
-                    cancellationToken);
+                await _messageLogRepository.AddAsync(messageLog,cancellationToken);
 
                 // مهم:
                 // Controller باید بفهمد این شماره Fail شده
