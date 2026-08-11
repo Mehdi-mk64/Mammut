@@ -59,6 +59,8 @@ namespace SystemManagment
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Post>), typeof(DAL.Repository.Basic.Personal.PostRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Unit>), typeof(DAL.Repository.Basic.Personal.UnitRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PersonGroup>), typeof(DAL.Repository.Basic.Personal.PersonGroupRepository));
+            services.AddScoped<DAL.Repository.Basic.Personal.PersonGroupRepository>();
+
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PersonPost>), typeof(DAL.Repository.Basic.Personal.PersonPostRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PersonUnit>), typeof(DAL.Repository.Basic.Personal.PersonUnitRepository));
 
@@ -76,8 +78,19 @@ namespace SystemManagment
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.SendImportance>), typeof(DAL.Repository.Basic.SMS.SendImportanceRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.SendStatus>), typeof(DAL.Repository.Basic.SMS.SendStatusRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.SMSProvider>), typeof(DAL.Repository.Basic.SMS.SendProviderRepository));
-           // services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.GSMSender>), typeof(DAL.Repository.Basic.SMS.GSMSenderRepository));
+            // services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.GSMSender>), typeof(DAL.Repository.Basic.SMS.GSMSenderRepository));
 
+
+            services.AddCors(options =>
+            {
+                options.AddPolicy("AllowOrigin", builder =>
+                {
+                    builder
+                        .AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader();
+                });
+            });
 
             services.AddControllersWithViews()
                     .AddNewtonsoftJson(options =>

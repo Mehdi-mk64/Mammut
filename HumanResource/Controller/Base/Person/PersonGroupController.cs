@@ -1,6 +1,8 @@
 ﻿using DAL.Repository;
+using DAL.Repository.Basic.Personal;
 using Entities.Base;
 using Entities.Basic.Personel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
@@ -12,9 +14,39 @@ namespace SMSAPI.Controller.Person
 {
     public class PersonGroupController : ApiControllerBase<Entities.Basic.Personel.PersonGroup>
     {
-        public PersonGroupController(IRepository<PersonGroup> repository) : base(repository)
+
+        private readonly PersonGroupRepository  _personGroupRepository;
+
+        public PersonGroupController(IRepository<PersonGroup> repository, PersonGroupRepository personGroupRepository): base(repository)
         {
+            _personGroupRepository =    personGroupRepository;
         }
+
+
+
+        [Authorize]
+        [HttpGet("SearchMembers")]
+        public async Task<IActionResult> SearchMembers( [FromQuery] long groupID, [FromQuery] string? personCode,
+            [FromQuery] string? name, [FromQuery] int page = 1, [FromQuery] int pageSize = 15,CancellationToken cancellationToken = default)
+        {
+            if (groupID <= 0)
+            {
+                return BadRequest("شناسه گروه معتبر نیست.");
+            }
+
+            var result =
+                await _personGroupRepository
+                    .SearchMembersAsync(
+                        groupID,
+                        personCode,
+                        name,
+                        page,
+                        pageSize,
+                        cancellationToken);
+
+            return Ok(result);
+        }
+
 
 
         [HttpGet]
@@ -27,6 +59,9 @@ namespace SMSAPI.Controller.Person
                 .ToListAsync(cancellationToken);
             return Ok(res);
         }
+
+
+
 
     }
 }

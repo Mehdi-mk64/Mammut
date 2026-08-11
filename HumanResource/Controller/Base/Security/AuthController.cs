@@ -1,4 +1,5 @@
 ﻿using Common.Security;
+using DAL;
 using Entities.Basic.Security;
 using Entities.DTO;
 using Microsoft.AspNetCore.Authorization;
@@ -13,7 +14,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
-
+using Microsoft.EntityFrameworkCore;
 
 namespace HumanResource.Controller.Security
 {
@@ -21,14 +22,24 @@ namespace HumanResource.Controller.Security
     [Route("[controller]")]
     public class AuthController : ControllerBase
     {
+        private readonly AppDbContext _dbContext;
         private readonly JwtSettings _jwtSettings;
         private readonly UserManager<ApplicationUser> _userManager;
 
-        public AuthController( UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions)
+
+        public AuthController(UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions, AppDbContext dbContext)
         {
             _userManager = userManager;
             _jwtSettings = jwtOptions.Value;
+            _dbContext = dbContext;
         }
+
+
+        //public AuthController( UserManager<ApplicationUser> userManager, IOptions<JwtSettings> jwtOptions)
+        //{
+        //    _userManager = userManager;
+        //    _jwtSettings = jwtOptions.Value;
+        //}
 
 
 
@@ -57,12 +68,20 @@ namespace HumanResource.Controller.Security
 
             var token = GenerateToken(user, roles);
 
+            var person = await _dbContext.Person.AsNoTracking()
+                .Where(x => x.ID == user.PersonID)
+                .Select(x => new { x.FirstName,   x.LastName })
+                .FirstOrDefaultAsync();
+
             return Ok(new
             {
                 Token = token,
                 user.Id,
                 user.UserName,
                 user.PersonID,
+                FirstName = person?.FirstName,
+                LastName = person?.LastName,
+                FullName = person == null ? user.UserName : $"{person.FirstName} {person.LastName}",
                 Roles = roles
             });
         }
