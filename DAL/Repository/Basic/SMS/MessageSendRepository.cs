@@ -68,31 +68,97 @@ namespace DAL.Repository.Basic.SMS
 
 
 
-        public override async Task AddAsync(MessageSend entity, CancellationToken cancellationToken, bool saveNow = true)
+        //public override async Task AddAsync(MessageSend entity, CancellationToken cancellationToken, bool saveNow = true)
+        //{
+        //    entity.InsertDateTime = DateTime.Now;
+
+        //    var resaultMsg = base.AddAsync(entity, cancellationToken, saveNow);
+        //    resaultMsg.Wait();
+        //    string phone = entity.PhoneNummber.Nummber;
+
+        //    var res = await SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
+
+
+        //    MessageLog messageLog = new MessageLog
+        //    {
+        //        MessageSendID = entity.ID,
+        //        ActionDateTime = entity.InsertDateTime,
+        //        SendStatusID = res.Status==true ? (byte)Common.SendStatusType.API_OK:(byte)Common.SendStatusType.SendAgain,
+        //        StatusCodeReturn = res.StatusCode.ToString(),
+        //        SendActive = true,
+        //        Description = "پیامک جدید"
+        //    };
+
+        //    var resaultlog = _messageLogRepository.AddAsync(messageLog, cancellationToken);
+
+        //    await resaultMsg;
+        //}
+
+
+
+        public override async Task AddAsync(
+    MessageSend entity,
+    CancellationToken cancellationToken,
+    bool saveNow = true)
         {
             entity.InsertDateTime = DateTime.Now;
 
-            var resaultMsg = base.AddAsync(entity, cancellationToken, saveNow);
-            resaultMsg.Wait();
-            string phone = entity.PhoneNummber.Nummber;
+            // شماره تلفن را با PhoneNumberID پیدا می‌کنیم
+            var phone = await TableNoTrackingOf<PhonNumbers>()
+                .Where(x => x.ID == entity.PhoneNumberID)
+                .Select(x => x.Nummber)
+                .FirstOrDefaultAsync(cancellationToken);
 
-            var res = await SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
+            if (string.IsNullOrWhiteSpace(phone))
+                throw new Exception("شماره تلفن موردنظر پیدا نشد.");
 
 
-            MessageLog messageLog = new MessageLog
+            // ابتدا MessageSend ذخیره می‌شود تا ID داشته باشیم
+            await base.AddAsync(
+                entity,
+                cancellationToken,
+                saveNow);
+
+
+            // ارسال واقعی SMS
+            var result = await SendBulkAsync(
+                entity.Message,
+                phone,
+                entity.DateTimeSend);
+
+
+            // ثبت نتیجه ارسال
+            var messageLog = new MessageLog
             {
                 MessageSendID = entity.ID,
-                ActionDateTime = entity.InsertDateTime,
-                SendStatusID = res.Status==true ? (byte)Common.SendStatusType.API_OK:(byte)Common.SendStatusType.SendAgain,
-                StatusCodeReturn = res.StatusCode.ToString(),
+
+                ActionDateTime = DateTime.Now,
+
+                SendStatusID = result.Status
+                    ? (byte)Common.SendStatusType.API_OK
+                    : (byte)Common.SendStatusType.SendAgain,
+
+                StatusCodeReturn =
+                    result.StatusCode.ToString(),
+
                 SendActive = true,
-                Description = "پیامک جدید"
+
+                IsComplete = result.Status,
+
+                Description = result.Status
+                    ? "پیامک با موفقیت ارسال شد."
+                    : "ارسال پیامک ناموفق بود."
             };
 
-            var resaultlog = _messageLogRepository.AddAsync(messageLog, cancellationToken);
 
-            await resaultMsg;
+            await _messageLogRepository.AddAsync(
+                messageLog,
+                cancellationToken);
         }
+
+
+
+
 
         public override void Add(MessageSend entity, bool saveNow = true)
         {
