@@ -1,4 +1,5 @@
 ﻿using Entities.Basic.Personel;
+using Entities.DTO;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +11,6 @@ namespace DAL.Repository.Base
 {
     public interface IGroupRepository : IRepository<Entities.Basic.Personel.Group>
     {
-        Task<List<string>> GetPhoneNumbersByGroupIDAsync(
-            long groupID,
-            CancellationToken cancellationToken);
+        Task<List<GroupPhoneDto>> GetPhoneNumbersByGroupIDAsync( long groupID, CancellationToken cancellationToken);
     }
 }

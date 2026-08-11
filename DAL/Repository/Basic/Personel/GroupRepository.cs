@@ -13,7 +13,10 @@ namespace DAL.Repository.Basic.Personal
             : base(dbContext)
         {
         }
-        public async Task<List<Entities.DTO.GroupPhoneDto>>  GetPhoneNumbersByGroupIDAsync(long groupID, CancellationToken cancellationToken)
+        public async Task<List<Entities.DTO.GroupPhoneDto>>
+            GetPhoneNumbersByGroupIDAsync(
+                long groupID,
+                CancellationToken cancellationToken)
         {
             return await TableNoTrackingOf<PersonGroup>()
                 .Where(pg =>

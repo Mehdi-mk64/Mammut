@@ -37,8 +37,8 @@ namespace SMSAPI.Controller.SMS
         [Authorize]
         [HttpPost("SendToGroup")]
         public async Task<IActionResult> SendToGroup(
-     [FromBody] SendToGroupDto model,
-     CancellationToken cancellationToken)
+       [FromBody] SendToGroupDto model,
+       CancellationToken cancellationToken)
         {
             var userIdClaim =
                 User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -50,7 +50,6 @@ namespace SMSAPI.Controller.SMS
                 return Unauthorized();
 
 
-            // 1. بررسی دسترسی کاربر به گروه
             var hasAccess =
                 await _accesseGroupRepository
                     .HasAccessToGroupAsync(
@@ -62,29 +61,31 @@ namespace SMSAPI.Controller.SMS
                 return Forbid();
 
 
-            // 2. گرفتن شماره‌ها + PhoneNumberID
-            var phones =
+            var phoneNumbers =
                 await _groupRepository
                     .GetPhoneNumbersByGroupIDAsync(
                         model.GroupID,
                         cancellationToken);
 
-            if (phones == null || !phones.Any())
-                return NotFound("هیچ شماره تلفنی برای این گروه پیدا نشد.");
+            if (phoneNumbers == null || !phoneNumbers.Any())
+                return NotFound(
+                    "هیچ شماره تلفنی برای این گروه پیدا نشد.");
 
 
-            // 3. ساخت MessageSend برای هر شماره
-            foreach (var phone in phones)
+            foreach (var phone in phoneNumbers)
             {
                 var messageSend = new MessageSend
                 {
                     Message = model.Message,
 
-                    PhoneNumberID = phone.PhoneNumberID,
+                    PhoneNumberID =
+                        phone.PhoneNumberID,
 
-                    DateTimeSend = model.DateTimeSend,
+                    DateTimeSend =
+                        model.DateTimeSend,
 
-                    SmsProviderID = model.SmsProviderID,
+                    SmsProviderID =
+                        model.SmsProviderID,
 
                     SendImportanceID =
                         model.SendImportanceID
@@ -99,7 +100,7 @@ namespace SMSAPI.Controller.SMS
             return Ok(new
             {
                 Message = "ارسال پیامک انجام شد.",
-                Count = phones.Count
+                Count = phoneNumbers.Count
             });
         }
 
