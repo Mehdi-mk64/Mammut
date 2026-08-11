@@ -1,4 +1,6 @@
 ﻿using DAL.Repository;
+using DAL.Repository.Basic.Personal;
+using DAL.Repository.Basic.Security;
 using Entities.Basic.Personel;
 using Entities.Basic.Security;
 using Entities.Basic.SMS;
@@ -16,62 +18,118 @@ namespace SMSAPI.Controller.SMS
 {
     public class MessageSendController : ApiControllerBase<Entities.Basic.SMS.MessageSend>
     {
-        public MessageSendController(IRepository<MessageSend> repository) : base(repository)
+
+        private readonly AccesseGroupRepository _accesseGroupRepository;
+        private readonly GroupRepository _groupRepository;
+
+        public MessageSendController(
+            IRepository<MessageSend> repository,
+            AccesseGroupRepository accesseGroupRepository,
+            GroupRepository groupRepository)
+            : base(repository)
         {
+            _accesseGroupRepository = accesseGroupRepository;
+            _groupRepository = groupRepository;
         }
-        public override Task<IActionResult> Create(MessageSend instance, CancellationToken cancellationToken)
-        {
-            return base.Create(instance, cancellationToken);
-        }
+
 
 
         [Authorize]
         [HttpPost("SendToGroup")]
-        public async Task<IActionResult> SendToGroup([FromBody] SendToGroupDto model, CancellationToken cancellationToken)
+        public async Task<IActionResult> SendToGroup(
+    [FromBody] SendToGroupDto model,
+    CancellationToken cancellationToken)
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdClaim =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrWhiteSpace(userIdClaim))
                 return Unauthorized();
 
-            if (!int.TryParse(userIdClaim, out int userID))
+            if (!long.TryParse(userIdClaim, out long userID))
                 return Unauthorized();
 
-            var hasAccess = await _repository.TableNoTrackingOf<AccesseGroup>()
-                .AnyAsync(x => x.UserID == userID && x.GroupID == model.GroupID);
 
-            if (!hasAccess)
+            // 1. بررسی دسترسی کاربر به گروه
+            var hasAccess =  await _accesseGroupRepository
+                    .HasAccessToGroupAsync(
+                        userID,
+                        model.GroupID,
+                        cancellationToken);
+
+            if (!hasAccess) 
                 return Forbid();
 
 
-            var personTels = await _repository
-                .TableNoTrackingOf<PersonGroup>()
-                .Where(x => x.GroupID == model.GroupID)
-                .Select(x => new
-                {
-                    x.PersonID
-                }).Join(_repository.TableNoTrackingOf<PhonNumbers>(), p => p.PersonID, t => t.PersonID, (per, tel) => new { PersonId =per.PersonID , TelNumme=tel.Nummber,telID=tel.ID})
-                .ToListAsync();
+            // 2. گرفتن شماره‌های گروه
+            var phoneNumbers =
+                await _groupRepository
+                    .GetPhoneNumbersByGroupIDAsync(
+                        model.GroupID,
+                        cancellationToken);
 
-                     
-
-            if (!personTels.Any())
-                return NotFound("No person found in this group.");
+            if (phoneNumbers == null || !phoneNumbers.Any())
+                return NotFound("هیچ شماره‌ای برای این گروه پیدا نشد.");
 
 
-            MessageSend messageSend = new MessageSend();
-            foreach (var person in personTels)
-            {
-                messageSend.Message = model.Message;
-                messageSend.PhoneNumberID = person.telID;
-                messageSend.DateTimeSend = model.DateTimeSend;
-                messageSend.SmsProviderID =model.SmsProviderID;
-                messageSend.SendImportanceID =model.SendImportanceID;
-                await _repository.AddAsync(messageSend, cancellationToken);
+            // 3. در مرحله بعد ارسال را اضافه می‌کنیم
 
-            }
-            
-            return Ok();
+            return Ok(phoneNumbers);
         }
+
+
+
+        //[Authorize]
+        //[HttpPost("SendToGroup")]
+        //public async Task<IActionResult> SendToGroup([FromBody] SendToGroupDto model, CancellationToken cancellationToken)
+        //{
+        //    var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+        //    if (string.IsNullOrWhiteSpace(userIdClaim))
+        //        return Unauthorized();
+
+        //    if (!int.TryParse(userIdClaim, out int userID))
+        //        return Unauthorized();
+
+        //    var hasAccess = await _repository.TableNoTrackingOf<AccesseGroup>()
+        //        .AnyAsync(x => x.UserID == userID && x.GroupID == model.GroupID);
+
+        //    if (!hasAccess)
+        //        return Forbid();
+
+
+        //    var personTels = await _repository
+        //        .TableNoTrackingOf<PersonGroup>()
+        //        .Where(x => x.GroupID == model.GroupID)
+        //        .Select(x => new
+        //        {
+        //            x.PersonID
+        //        }).Join(_repository.TableNoTrackingOf<PhonNumbers>(), p => p.PersonID, t => t.PersonID, (per, tel) => new { PersonId =per.PersonID , TelNumme=tel.Nummber,telID=tel.ID})
+        //        .ToListAsync();
+
+
+
+        //    if (!personTels.Any())
+        //        return NotFound("No person found in this group.");
+
+
+        //    MessageSend messageSend = new MessageSend();
+        //    foreach (var person in personTels)
+        //    {
+        //        messageSend.Message = model.Message;
+        //        messageSend.PhoneNumberID = person.telID;
+        //        messageSend.DateTimeSend = model.DateTimeSend;
+        //        messageSend.SmsProviderID =model.SmsProviderID;
+        //        messageSend.SendImportanceID =model.SendImportanceID;
+        //        await _repository.AddAsync(messageSend, cancellationToken);
+
+        //    }
+
+        //    return Ok();
+        //}
+
+
+
+
     }
 }
