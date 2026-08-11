@@ -13,9 +13,20 @@ namespace DAL.Repository.Basic.Personal
 {
     public class PersonGroupRepository : Repository<PersonGroup>
     {
+
         public PersonGroupRepository(AppDbContext dbContext) : base(dbContext)
         {
         }
+
+        public async Task<bool> ExistsAsync(long personID,long groupID, CancellationToken cancellationToken = default)
+        {
+            return await TableNoTracking.AnyAsync(
+                x => x.PersonID == personID &&
+                     x.GroupID == groupID
+                     ,cancellationToken
+                     );
+        }
+
 
         public async Task<PagedResultDto<PersonGroupSearchDto>>  SearchMembersAsync( long groupID,  string? personCode,
             string? name,int page, int pageSize,CancellationToken cancellationToken)

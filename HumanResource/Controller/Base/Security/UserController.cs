@@ -32,6 +32,22 @@ namespace HumanResource.Controller.Security
         }
 
 
+        [Authorize(Roles = "Admin")]
+        [HttpGet("Roles")]
+        public async Task<IActionResult> GetRoles()
+        {
+            var roles = await _roleManager.Roles
+                .AsNoTracking()
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Name
+                })
+                .ToListAsync();
+
+            return Ok(roles);
+        }
+
 
         [HttpPost]
         public async Task<IActionResult> Create(CreateUserDto model)

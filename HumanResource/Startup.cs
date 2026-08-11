@@ -55,6 +55,8 @@ namespace SystemManagment
 
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Person>), typeof(DAL.Repository.Basic.Personal.PersonRepository));
+            services.AddScoped<DAL.Repository.Basic.Personal.PersonRepository>();
+
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PhonNumbers>), typeof(DAL.Repository.Basic.Personal.PhonNummberRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Post>), typeof(DAL.Repository.Basic.Personal.PostRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Unit>), typeof(DAL.Repository.Basic.Personal.UnitRepository));

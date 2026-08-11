@@ -61,6 +61,24 @@ namespace SMSAPI.Controller.Person
         }
 
 
+        [HttpPost]
+        [Route("Create")]
+        public override async Task<IActionResult> Create(PersonGroup instance, CancellationToken cancellationToken)
+        {
+            var exists = await _personGroupRepository.ExistsAsync(instance.PersonID,instance.GroupID,cancellationToken);
+
+            if (exists)
+            {
+                return Conflict(new{ message = "این پرسنل قبلاً عضو این گروه است." });
+            }
+
+            await _repository.AddAsync(instance, cancellationToken);
+
+            return Ok(instance);
+
+           
+        }
+
 
 
     }
