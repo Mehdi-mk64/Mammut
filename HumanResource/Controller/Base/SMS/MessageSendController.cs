@@ -43,7 +43,7 @@ namespace SMSAPI.Controller.SMS
             if (string.IsNullOrWhiteSpace(userIdClaim))
                 return Unauthorized();
 
-            if (!long.TryParse(userIdClaim, out long userID))
+            if (!int.TryParse(userIdClaim, out int userID))
                 return Unauthorized();
 
 
@@ -71,6 +71,7 @@ namespace SMSAPI.Controller.SMS
                 {
                     var messageSend = new MessageSend
                     {
+                        UserID = userID,
                         Message = model.Message ,
                         PhoneNumberID = phone.PhoneNumberID,
                         DateTimeSend = model.DateTimeSend,

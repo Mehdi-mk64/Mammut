@@ -4,14 +4,16 @@ using DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260811215814_test11")]
+    partial class test11
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -408,7 +410,7 @@ namespace DAL.Migrations
                     b.Property<int?>("SmsProviderID")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserID")
+                    b.Property<int?>("UserID")
                         .HasColumnType("int");
 
                     b.HasKey("ID");
@@ -646,7 +648,7 @@ namespace DAL.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@MAMMUT.LOCAL",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAEP5XzLq2DYrP0WLR9PrrBwV8ZsUmPZCcTVnD81i/CpQLAvwpl2C1cHfgK0TSAdpU/A==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEKv8FM88EAAgev80wY+gl376VRtAHtA8bvdc1zdd6cnFpIxGXpXfT0x63Z92dAUJpA==",
                             PersonID = 2L,
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STATIC-ADMIN-SECURITY-STAMP",
@@ -663,7 +665,7 @@ namespace DAL.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "USER@MAMMUT.LOCAL",
                             NormalizedUserName = "user",
-                            PasswordHash = "AQAAAAEAACcQAAAAEIc4QrHi95CMExlYvx48iwpidcJMwW9FnvE7eP8A84I32+IpZRNkytVnnLpvzfnJag==",
+                            PasswordHash = "AQAAAAEAACcQAAAAECUimErfi9WVJYJaIw0OEKSOOE8hH/m8Bi6PUiePltB/yRLijzUddtEueTY6I76UFg==",
                             PersonID = 1L,
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STATIC-USER-SECURITY-STAMP",
@@ -1029,8 +1031,7 @@ namespace DAL.Migrations
                         .WithMany("ApplicationUser_MessageSend")
                         .HasForeignKey("UserID")
                         .HasConstraintName("FK_MessageSend_ApplicationUser_ID")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("MessageSend_SendImportance");
 

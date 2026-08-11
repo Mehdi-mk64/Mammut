@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Entities.Basic.Security;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,11 @@ namespace Entities.Basic.SMS
 
         [Required(ErrorMessage = "وارد کردن متن پیام الزامیست")]
         public string Message { get; set; }
+
+        public int UserID { get; set; }
+
+        public ApplicationUser MessageSend_User { get; set; }
+
 
         public long PhoneNumberID { get; set; }
         public Personel.PhonNumbers PhoneNummber { get; set; }
@@ -48,6 +54,12 @@ namespace Entities.Basic.SMS
                 builder.HasOne(o => o.PhoneNummber).WithMany(m => m.MessageSend_PhoneNumer).HasForeignKey(f => f.PhoneNumberID).HasConstraintName("FK_MessageSend_PhoneNumber_ID");
                 builder.HasOne(o => o.MessageSend_SmsProvider).WithMany(m => m.SmsProvider_MessageSend).HasForeignKey(f => f.SmsProviderID).HasConstraintName("FK_MessageSend_SMSProvider_ID");
                 builder.HasOne(o => o.MessageSend_SendImportance).WithMany(m => m.SendImportance_MessageSend).HasForeignKey(f => f.SendImportanceID).HasConstraintName("FK_MessageSend_SendImportance_ID");
+               
+                builder.HasOne(x => x.MessageSend_User).WithMany(x => x.ApplicationUser_MessageSend).HasForeignKey(x => x.UserID).OnDelete(DeleteBehavior.Restrict).HasConstraintName("FK_MessageSend_ApplicationUser_ID");
+
+
+
+
             }
         }
         #endregion

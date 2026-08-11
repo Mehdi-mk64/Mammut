@@ -77,6 +77,8 @@ namespace SystemManagment
 
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.MessageLog>), typeof(DAL.Repository.Basic.SMS.MessageLogRepository));
+            services.AddScoped<DAL.Repository.Basic.SMS.MessageLogRepository>();
+
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.SendImportance>), typeof(DAL.Repository.Basic.SMS.SendImportanceRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.SendStatus>), typeof(DAL.Repository.Basic.SMS.SendStatusRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.SMSProvider>), typeof(DAL.Repository.Basic.SMS.SendProviderRepository));
