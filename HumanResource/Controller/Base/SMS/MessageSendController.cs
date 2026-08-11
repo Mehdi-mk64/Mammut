@@ -8,6 +8,8 @@ using Entities.DTO;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading;
@@ -61,31 +63,63 @@ namespace SMSAPI.Controller.SMS
                 return NotFound(
                     "هیچ شماره تلفنی برای این گروه پیدا نشد.");
 
+            int successCount = 0;
+            int failedCount = 0;
+
+            var failedPhones = new List<string>();
 
             foreach (var phone in phoneNumbers)
             {
-                var messageSend = new MessageSend
+                try
                 {
-                    Message = model.Message,
+                    var messageSend = new MessageSend
+                    {
+                        Message = model.Message,
 
-                    PhoneNumberID = phone.PhoneNumberID,
+                        PhoneNumberID = phone.PhoneNumberID,
 
-                    DateTimeSend = model.DateTimeSend,
+                        DateTimeSend = model.DateTimeSend,
 
-                    SmsProviderID = model.SmsProviderID,
+                        SmsProviderID = model.SmsProviderID,
 
-                    SendImportanceID =  model.SendImportanceID
-                };
+                        SendImportanceID = model.SendImportanceID
+                    };
 
-                await _repository.AddAsync(messageSend, cancellationToken);
+                    await _repository.AddAsync(
+                        messageSend,
+                        cancellationToken);
+
+                    successCount++;
+                }
+                catch (Exception)
+                {
+                    failedCount++;
+
+                    failedPhones.Add(phone.PhoneNumber);
+
+                    // عمداً throw نمی‌کنیم
+                    // تا شماره بعدی ارسال شود
+                }
             }
+
 
 
             return Ok(new
             {
-                Message = "ارسال پیامک انجام شد.",
-                Count = phoneNumbers.Count
+                Message = "عملیات ارسال پیامک پایان یافت.",
+
+                TotalCount = phoneNumbers.Count,
+
+                SuccessCount = successCount,
+
+                FailedCount = failedCount,
+
+                FailedPhones = failedPhones
             });
+
+
+
+
         }
 
 

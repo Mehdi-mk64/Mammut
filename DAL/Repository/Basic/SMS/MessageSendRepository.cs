@@ -34,13 +34,13 @@ namespace DAL.Repository.Basic.SMS
 
 
 
-        private static async Task<Entities.DTO.SmsIrResault> SendBulkAsync(string message, string phone, DateTime? sendDateTime =null)
+        private static async Task<Entities.DTO.SmsIrResault> SendBulkAsync(string message, string phone, DateTime? sendDateTime = null)
         {
             ConfigManager configManager = new ConfigManager();
             string apiKey = configManager.GetKeyValue("SmsIRService", "Key");
             SmsIr smsIr = new SmsIr(apiKey);
             long lineNumber = 10004501;
-            long.TryParse(configManager.GetKeyValue("SmsIRService", "Nummber"),out lineNumber);
+            long.TryParse(configManager.GetKeyValue("SmsIRService", "Nummber"), out lineNumber);
             string messageText = message;
             string[] mobile = { phone };
 
@@ -57,7 +57,7 @@ namespace DAL.Repository.Basic.SMS
 
 
             var response = await smsIr.BulkSendAsync(lineNumber, message, mobile, sendDateTimeservice);
-            
+
             if (response == null)
             {
                 throw new Exception("پاسخی از سرویس SMS.ir دریافت نشد.");
@@ -79,7 +79,7 @@ namespace DAL.Repository.Basic.SMS
 
             return new Entities.DTO.SmsIrResault
             {
-                MessageId =  sendResult.MessageIds != null && sendResult.MessageIds.Length > 0 ? sendResult.MessageIds[0].GetValueOrDefault(0): 0,
+                MessageId = sendResult.MessageIds != null && sendResult.MessageIds.Length > 0 ? sendResult.MessageIds[0].GetValueOrDefault(0) : 0,
                 Phone = phone,
                 Status = response.Status == 1,
                 StatusCode = response.Status
@@ -117,7 +117,7 @@ namespace DAL.Repository.Basic.SMS
 
 
 
-        public override async Task AddAsync(MessageSend entity,CancellationToken cancellationToken, bool saveNow = true)
+        public override async Task AddAsync(MessageSend entity, CancellationToken cancellationToken, bool saveNow = true)
         {
             entity.InsertDateTime = DateTime.Now;
 
@@ -134,35 +134,67 @@ namespace DAL.Repository.Basic.SMS
             // ابتدا MessageSend ذخیره می‌شود تا ID داشته باشیم
             await base.AddAsync(entity, cancellationToken, true);
 
-
-            // ارسال واقعی SMS
-            var result = await SendBulkAsync( entity.Message, phone, entity.DateTimeSend);
-
-
-
-            var messageLog = new MessageLog
+            try
             {
-                MessageSendID = entity.ID,
+                var result = await SendBulkAsync(
+                    entity.Message,
+                    phone,
+                    entity.DateTimeSend);
 
-                ActionDateTime = DateTime.Now,
+                var messageLog = new MessageLog
+                {
+                    MessageSendID = entity.ID,
+                    ActionDateTime = DateTime.Now,
 
-                SendStatusID = result.Status ? (byte)Common.SendStatusType.API_OK : (byte)Common.SendStatusType.SendAgain,
+                    SendStatusID = result.Status
+                        ? (byte)Common.SendStatusType.API_OK
+                        : (byte)Common.SendStatusType.SendAgain,
 
-                StatusCodeReturn = result.StatusCode.ToString(),
+                    StatusCodeReturn = result.StatusCode.ToString(),
 
-                IsComplete = result.Status,
-              
+                    SendActive = true,
+                    IsComplete = result.Status,
 
-                ProviderMessageID= result.MessageId,
+                    Description = result.Status
+                        ? "پیامک با موفقیت ارسال شد."
+                        : "ارسال پیامک ناموفق بود."
+                };
 
-                SendActive = true,
+                await _messageLogRepository.AddAsync(
+                    messageLog,
+                    cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                var messageLog = new MessageLog
+                {
+                    MessageSendID = entity.ID,
+                    ActionDateTime = DateTime.Now,
 
-                Description = result.Status ? $"ارسال موفق. MessageId: {result.MessageId}" : $"ارسال ناموفق. StatusCode: {result.StatusCode}"
-            };
+                    // طبق بیزینس شما
+                    SendStatusID =
+                        (byte)Common.SendStatusType.SendAgain,
 
-            await _messageLogRepository.AddAsync(
-                messageLog,
-                cancellationToken);
+                    StatusCodeReturn = "EXCEPTION",
+
+                    SendActive = true,
+                    IsComplete = false,
+
+                    Description = ex.Message
+                };
+
+                await _messageLogRepository.AddAsync(
+                    messageLog,
+                    cancellationToken);
+
+                // مهم:
+                // Controller باید بفهمد این شماره Fail شده
+                throw;
+            }
+
+
+
+
 
         }
 
@@ -174,10 +206,10 @@ namespace DAL.Repository.Basic.SMS
         {
             entity.InsertDateTime = DateTime.Now;
             base.Add(entity, saveNow);
-            
+
             string phone = entity.PhoneNummber.Nummber;
 
-            var res =  SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
+            var res = SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
 
 
             MessageLog messageLog = new MessageLog
