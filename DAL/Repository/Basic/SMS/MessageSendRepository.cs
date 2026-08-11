@@ -40,30 +40,51 @@ namespace DAL.Repository.Basic.SMS
             string apiKey = configManager.GetKeyValue("SmsIRService", "Key");
             SmsIr smsIr = new SmsIr(apiKey);
             long lineNumber = 10004501;
+            long.TryParse(configManager.GetKeyValue("SmsIRService", "Nummber"),out lineNumber);
             string messageText = message;
             string[] mobile = { phone };
 
             int? sendDateTimeservice = null;
-            DateTime inputSendDattime= sendDateTime ?? DateTime.MinValue;
-            if (inputSendDattime == DateTime.MinValue)
+
+            if (sendDateTime.HasValue)
             {
-                long unixTime = new DateTimeOffset(inputSendDattime).ToUnixTimeSeconds();
+                long unixTime =
+                    new DateTimeOffset(sendDateTime.Value)
+                        .ToUnixTimeSeconds();
+
                 sendDateTimeservice = (int)unixTime;
             }
 
 
             var response = await smsIr.BulkSendAsync(lineNumber, message, mobile, sendDateTimeservice);
-            SendResult sendResult = response.Data;
             
-            Entities.DTO.SmsIrResault  smsIrResault = new Entities.DTO.SmsIrResault() 
+            if (response == null)
             {
-                MessageId = sendResult.MessageIds[0].GetValueOrDefault(0),
+                throw new Exception("پاسخی از سرویس SMS.ir دریافت نشد.");
+            }
+
+            if (response.Data == null)
+            {
+                return new Entities.DTO.SmsIrResault
+                {
+                    Phone = phone,
+                    MessageId = 0,
+                    Status = false,
+                    StatusCode = response.Status
+                };
+            }
+
+
+            var sendResult = response.Data;
+
+            return new Entities.DTO.SmsIrResault
+            {
+                MessageId =  sendResult.MessageIds != null && sendResult.MessageIds.Length > 0 ? sendResult.MessageIds[0].GetValueOrDefault(0): 0,
                 Phone = phone,
-                Status = response.Status == 1 ? true : false,
+                Status = response.Status == 1,
                 StatusCode = response.Status
             };
 
-            return smsIrResault;
         }
 
 
