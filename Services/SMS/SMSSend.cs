@@ -1,15 +1,14 @@
 ﻿using Common;
+using Common.Utilities;
 using DAL;
 using DAL.Repository.Basic.SMS;
+using Entities.Base;
 using Entities.Basic.SMS;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.Extensions.Logging;
+using IPE.SmsIrClient;
 using Newtonsoft.Json.Linq;
-using RestSharp;
+using Spire.Pdf.Exporting.XPS.Schema;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -25,105 +24,96 @@ namespace Services.SMS
             dbContext = new AppDbContext();
             _messageLogRepository = new MessageLogRepository(dbContext);
         }
-        public async Task MagfaSendSMS()
+      
+
+
+        public async Task SmsIrSendSMS()
         {
-            //CancellationToken cancellationToken = new CancellationToken();
-
-            //var smsSendList = _messageLogRepository.GetSmsSendListWithApi(cancellationToken).Result;
-            //foreach (MessageLog messageLog in smsSendList)
-            //{
-            //    MessageLog sendMessageLog = new MessageLog()
-            //    {
-
-            //        MessageSendID = messageLog.MessageSendID,
-            //        ActionDateTime = DateTime.Now,
-            //        StatusCodeReturn = "No Impliment"
-
-            //    };
-            //    if (messageLog.MessageLog_MessageSend.SmsProviderID == null)
-            //    {
-            //        sendMessageLog.Description = "SMS ProviderID is Null";
-            //        if (messageLog.MessageLog_MessageSend.SendImportanceID == (byte)(SendImportanceType.Important))
-            //        {
-            //            sendMessageLog.SendActive = true;
-            //            sendMessageLog.SendStatusID = (byte)SendStatusType.SendGSM;
-            //        }
-            //        else
-            //        {
-            //            sendMessageLog.SendActive = false;
-            //            sendMessageLog.SendStatusID = (byte)SendStatusType.Fault;
-            //        }
-            //        sendMessageLog.IsComplete = false;
-            //    }
-            //    else
-            //    {
-            //        var response = SMSIR.MagfaSendSMS(messageLog.MessageLog_MessageSend);
-            //        sendMessageLog.Description = response.Content;
-            //        if (response.Content.ToString() != null)
-            //        {
-            //            sendMessageLog.StatusCodeReturn = (string)JObject.Parse(response.Content.ToString())["status"];
-            //        }
-            //        else
-            //        {
-            //            sendMessageLog.StatusCodeReturn = "No Response";
-            //        }
-            //        if (sendMessageLog.StatusCodeReturn == "0")
-            //        {
-            //            sendMessageLog.SendStatusID = (byte)SendStatusType.API_OK;
-            //            sendMessageLog.IsComplete = true;
-            //            sendMessageLog.SendActive = false;
-            //        }
-            //        else 
-            //        {
-            //            int countSend = _messageLogRepository.GetMessageStatusListByID(messageLog.MessageSendID, SendStatusType.SendAgain, cancellationToken).Result.Count() + 1;
-
-            //            if (messageLog.MessageLog_MessageSend.MaximumTrySendSMS == 0)
-            //            {
-            //                sendMessageLog.SendStatusID = (byte)SendStatusType.SendAgain;
-            //                sendMessageLog.IsComplete = false;
-            //                sendMessageLog.SendActive = true;
-            //            }
-
-            //            else
-            //            {
-            //                if (countSend < messageLog.MessageLog_MessageSend.MaximumTrySendSMS)
-            //                {
-            //                    sendMessageLog.SendStatusID = (byte)SendStatusType.SendAgain;
-            //                    sendMessageLog.IsComplete = false;
-            //                    sendMessageLog.SendActive = true;
-
-            //                }
-            //                else
-            //                {
-            //                    if (messageLog.MessageLog_MessageSend.SendImportanceID == (byte)SendImportanceType.Important)
-            //                    {
-            //                        sendMessageLog.SendStatusID = (byte)SendStatusType.SendGSM;
-            //                        sendMessageLog.IsComplete = false;
-            //                        sendMessageLog.SendActive = true;
-            //                    }
-            //                    else
-            //                    {
-            //                        sendMessageLog.SendStatusID = (byte)SendStatusType.Fault;
-            //                        sendMessageLog.IsComplete = false;
-            //                        sendMessageLog.SendActive = false;
-            //                    }
-            //                }
-
-            //            }
-
-            //        }
+            CancellationToken cancellationToken = new CancellationToken();
+            ConfigManager configManager = new ConfigManager();
+            string apiKey = configManager.GetKeyValue("SmsIRService", "Key");
+            var smsSendList = _messageLogRepository.GetSmsSendListWithApi(cancellationToken).Result;
+            var phones = smsSendList.Select(s => s.MessageLog_MessageSend.PhoneNummber.Nummber).ToArray();
 
 
-            //    }
+            //var smsSendList= SMSIRService.SendBulkAsync()
 
-            //    await _messageLogRepository.AddAsync(sendMessageLog, cancellationToken);
-            //    messageLog.SendActive = false;
 
-            //}
-            //if (smsSendList.Count > 0)
-            //{
-            //    await _messageLogRepository.UpdateRangeAsync(smsSendList, cancellationToken);
-            //}
+            foreach (MessageLog messageLog in smsSendList)
+            {
+                MessageLog sendMessageLog = new MessageLog()
+                {
+
+                    MessageSendID = messageLog.MessageSendID,
+                    ActionDateTime = DateTime.Now,
+                    StatusCodeReturn = "No Impliment"
+
+                };
+                if (messageLog.MessageLog_MessageSend.SmsProviderID == null)
+                {
+                    sendMessageLog.Description = "SMS ProviderID is Null";
+                    sendMessageLog.SendActive = false;
+                    sendMessageLog.SendStatusID = (byte)SendStatusType.Fault;
+                    sendMessageLog.IsComplete = false;
+                }
+                else
+                {
+
+                    var smsIrResualt = SMSIRService.SendBulkAsync(messageLog.MessageLog_MessageSend.Message, messageLog.MessageLog_MessageSend.PhoneNummber.Nummber, messageLog.MessageLog_MessageSend.DateTimeSend).Result;
+
+                    sendMessageLog.SendStatusID = smsIrResualt.Status == true ? (byte)Common.SendStatusType.API_OK : (byte)Common.SendStatusType.SendAgain;
+                    sendMessageLog.StatusCodeReturn = smsIrResualt.StatusCode.ToString();
+                    sendMessageLog.Description = "ارسال مجدد";
+                 
+                    if (smsIrResualt.StatusCode == 0)
+                    {
+                        sendMessageLog.SendActive = true;
+                        sendMessageLog.IsComplete = true;
+                        sendMessageLog.SendStatusID = (byte)SendStatusType.API_OK;
+
+                    }
+
+                    else
+                    {
+                        int countSend = _messageLogRepository.GetMessageStatusListByID(messageLog.MessageSendID, SendStatusType.SendAgain, cancellationToken).Result.Count() + 1;
+
+                        if (messageLog.MessageLog_MessageSend.MaximumTrySendSMS == 0)
+                        {
+                            sendMessageLog.SendStatusID = (byte)SendStatusType.SendAgain;
+                            sendMessageLog.IsComplete = false;
+                            sendMessageLog.SendActive = true;
+                        }
+                        else
+                        {
+                            if (countSend < messageLog.MessageLog_MessageSend.MaximumTrySendSMS)
+                            {
+                                sendMessageLog.SendStatusID = (byte)SendStatusType.SendAgain;
+                                sendMessageLog.IsComplete = false;
+                                sendMessageLog.SendActive = true;
+
+                            }
+                            else
+                            {
+                                sendMessageLog.SendStatusID = (byte)SendStatusType.Fault;
+                                sendMessageLog.IsComplete = false;
+                                sendMessageLog.SendActive = false;
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+                await _messageLogRepository.AddAsync(sendMessageLog, cancellationToken);
+                messageLog.SendActive = false;
+
+            }
+            if (smsSendList.Count > 0)
+            {
+                await _messageLogRepository.UpdateRangeAsync(smsSendList, cancellationToken);
+            }
 
         }
 
@@ -133,58 +123,14 @@ namespace Services.SMS
 
 
 
-        public async Task GsmSendSMS()
-        {
-            //CancellationToken cancellationToken = new CancellationToken();
-
-            //var smsSendList = _messageLogRepository.GetSmsSendListWithGSM(cancellationToken).Result;
-
-            //foreach (MessageLog messageLog in smsSendList)
-            //{
-            //    MessageLog sendMessageLog = new MessageLog()
-            //    {
-
-            //        MessageSendID = messageLog.MessageSendID,
-            //        ActionDateTime = DateTime.Now
-                    
-            //    };
-
-            //    if (messageLog.MessageLog_MessageSend.GSMSenderID ==null) 
-            //    {
-            //        sendMessageLog.Description = "GSMSender Is Null";
-            //        sendMessageLog.SendStatusID = (byte)SendStatusType.Fault;
-            //        sendMessageLog.IsComplete = true;
-            //        sendMessageLog.SendActive = false;
-            //        _messageLogRepository.Add(sendMessageLog);
-            //        messageLog.SendActive = false;
-            //    }
-            //    else 
-            //    {
-            //        var response = GSMService.GSMSendSMS(messageLog.MessageLog_MessageSend);
-
-            //        sendMessageLog.Description = response.Result.ToString();
-            //        sendMessageLog.StatusCodeReturn = response.Result.StatusCode.ToString();
-            //        if (response.Result.StatusCode == System.Net.HttpStatusCode.OK)
-            //        {
-            //            sendMessageLog.SendStatusID = (byte)SendStatusType.GSM_OK;
-            //        }
-            //        else
-            //        {
-            //            sendMessageLog.SendStatusID = (byte)SendStatusType.Fault;
-            //        }
-            //        sendMessageLog.IsComplete = true;
-            //        sendMessageLog.SendActive = false;
-            //    }
-            //    _messageLogRepository.Add(sendMessageLog);
-            //    messageLog.SendActive = false;
-
-            //}
-            //if (smsSendList.Count>0 )
-            //{
-            //    await _messageLogRepository.UpdateRangeAsync(smsSendList, cancellationToken);
-            //}
-        }
     }
+
+
+
+
+
+
+
 
 
 

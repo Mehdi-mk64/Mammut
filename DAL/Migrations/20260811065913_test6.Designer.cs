@@ -4,14 +4,16 @@ using DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260811065913_test6")]
+    partial class test6
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -643,29 +645,12 @@ namespace DAL.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@MAMMUT.LOCAL",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAEM4iSe/qOARx2eD6pKvhhQm3UWBqdcmDfG3kGcnO35f6/Lk23Z50qF5kkTnz+UgURw==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEGT/TsslZcQ9e99j5r8xDCzCyZHDZawLYXDzuYqM8sC9wyb+ouK1h45UOe0hJabIPw==",
                             PersonID = 2L,
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "STATIC-ADMIN-SECURITY-STAMP",
                             TwoFactorEnabled = false,
                             UserName = "admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "STATIC-USER-CONCURRENCY-STAMP",
-                            Email = "user@mammut.local",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "USER@MAMMUT.LOCAL",
-                            NormalizedUserName = "user",
-                            PasswordHash = "AQAAAAEAACcQAAAAEBHbTAxrCoQY1uFWBCCDS9kjxtCBb2WFcUW4zY42FnLL1b5L9dOCNLt6mv3rbQQ17Q==",
-                            PersonID = 1L,
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "STATIC-USER-SECURITY-STAMP",
-                            TwoFactorEnabled = false,
-                            UserName = "user"
                         });
                 });
 
@@ -741,22 +726,6 @@ namespace DAL.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ConcurrencyStamp = "ADMIN-ROLE-CONCURRENCY-STAMP",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ConcurrencyStamp = "USERS-ROLE-CONCURRENCY-STAMP",
-                            Name = "Users",
-                            NormalizedName = "USERS"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -839,18 +808,6 @@ namespace DAL.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1,
-                            RoleId = 1
-                        },
-                        new
-                        {
-                            UserId = 2,
-                            RoleId = 2
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>

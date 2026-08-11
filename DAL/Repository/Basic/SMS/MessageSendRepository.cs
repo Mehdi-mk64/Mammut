@@ -21,31 +21,30 @@ namespace DAL.Repository.Basic.SMS
 {
     public class MessageSendRepository : Repository<MessageSend>
     {
+
         private MessageLogRepository _messageLogRepository;
-
-        private AccesseGroupRepository _accesseGroupRepository;
-        private PhonNummberRepository _phoneNumbersRepository;
-
-
         public MessageSendRepository(AppDbContext dbContext) : base(dbContext)
         {
             _messageLogRepository = new MessageLogRepository(dbContext);
-
-
         }
 
 
 
 
-        private static async Task<List<Entities.DTO.SmsIrResault>> SendBulkAsync(string apiKey, string message, List<string> phons, string? sendDateTime = null)
+
+
+
+        private static async Task<Entities.DTO.SmsIrResault> SendBulkAsync(string message, string phone, DateTime? sendDateTime =null)
         {
+            ConfigManager configManager = new ConfigManager();
+            string apiKey = configManager.GetKeyValue("SmsIRService", "Key");
             SmsIr smsIr = new SmsIr(apiKey);
             long lineNumber = 10004501;
             string messageText = message;
-            string[] mobiles = phons.ToArray();
+            string[] mobile = { phone };
 
             int? sendDateTimeservice = null;
-            DateTime.TryParse(sendDateTime, out DateTime inputSendDattime);
+            DateTime inputSendDattime= sendDateTime ?? DateTime.MinValue;
             if (inputSendDattime == DateTime.MinValue)
             {
                 long unixTime = new DateTimeOffset(inputSendDattime).ToUnixTimeSeconds();
@@ -53,74 +52,69 @@ namespace DAL.Repository.Basic.SMS
             }
 
 
-            var response = await smsIr.BulkSendAsync(lineNumber, messageText, mobiles, sendDateTimeservice);
+            var response = await smsIr.BulkSendAsync(lineNumber, message, mobile, sendDateTimeservice);
             SendResult sendResult = response.Data;
-            List<Entities.DTO.SmsIrResault> smsIrResault = new List<Entities.DTO.SmsIrResault>();
-            byte statusCode = response.Status;
-            for (int i = 0; i < sendResult.MessageIds.Length; i++)
+            
+            Entities.DTO.SmsIrResault  smsIrResault = new Entities.DTO.SmsIrResault() 
             {
-                smsIrResault.Add(new Entities.DTO.SmsIrResault
-                {
-                    MessageId = sendResult.MessageIds[i].GetValueOrDefault(0),
-                    Phone = phons[i],
-                    Status = statusCode == 1 ? true : false,
-                    StatusCode = statusCode
-                });
-            }
-            return smsIrResault;
+                MessageId = sendResult.MessageIds[0].GetValueOrDefault(0),
+                Phone = phone,
+                Status = response.Status == 1 ? true : false,
+                StatusCode = response.Status
+            };
 
+            return smsIrResault;
         }
+
 
 
         public override async Task AddAsync(MessageSend entity, CancellationToken cancellationToken, bool saveNow = true)
         {
-
-            //var phoneList = await _accesseGroupRepository.GetUserGroupsAsync(entity.UserID , cancellationToken);
-
-            //if (phoneList == null)
-            //    throw new UnauthorizedAccessException("خطا در دسترسی");
-
             entity.InsertDateTime = DateTime.Now;
-            
-            await Entities.AddAsync(entity, cancellationToken).ConfigureAwait(false);
 
-            
+            var resaultMsg = base.AddAsync(entity, cancellationToken, saveNow);
+            resaultMsg.Wait();
+            string phone = entity.PhoneNummber.Nummber;
 
-            MessageLog messageLog = new MessageLog() 
-            { 
-             
+            var res = await SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
+
+
+            MessageLog messageLog = new MessageLog
+            {
+                MessageSendID = entity.ID,
+                ActionDateTime = entity.InsertDateTime,
+                SendStatusID = res.Status==true ? (byte)Common.SendStatusType.API_OK:(byte)Common.SendStatusType.SendAgain,
+                StatusCodeReturn = res.StatusCode.ToString(),
+                SendActive = true,
+                Description = "پیامک جدید"
             };
 
-            
-            await _messageLogRepository.AddAsync(entity, cancellationToken);
-            
+            var resaultlog = _messageLogRepository.AddAsync(messageLog, cancellationToken);
+
+            await resaultMsg;
         }
 
-        public override Task AddRangeAsync(IEnumerable<MessageSend> entities, CancellationToken cancellationToken, bool saveNow = true)
+        public override void Add(MessageSend entity, bool saveNow = true)
         {
-            var phones = entities.Select(s => s.MessageSend_MessageSendPhone);
-            //SendBulkAsync(string apiKey, string message, List<string> phons, sendDateTime = null)
-            return base.AddRangeAsync(entities, cancellationToken, saveNow);
+            entity.InsertDateTime = DateTime.Now;
+            base.Add(entity, saveNow);
+            
+            string phone = entity.PhoneNummber.Nummber;
+
+            var res =  SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
+
+
+            MessageLog messageLog = new MessageLog
+            {
+                MessageSendID = entity.ID,
+                ActionDateTime = entity.InsertDateTime,
+                SendStatusID = res.Result.Status == true ? (byte)Common.SendStatusType.API_OK : (byte)Common.SendStatusType.SendAgain,
+                StatusCodeReturn = res.Result.StatusCode.ToString(),
+                SendActive = true,
+                Description = "پیامک جدید"
+            };
+            _messageLogRepository.Add(messageLog);
         }
-
-
-        //public override void Add(MessageSend entity, bool saveNow = true)
-        //{
-        //    entity.InsertDateTime = DateTime.Now;
-        //    base.Add(entity, saveNow);
-        //    MessageLog messageLog = new MessageLog
-        //    {
-        //        MessageSendID = entity.ID,
-        //        ActionDateTime = entity.InsertDateTime,
-        //        SendStatusID = (entity.SendImportanceID == (byte)SendImportanceType.ForceGSM ? (byte)Common.SendStatusType.SendGSM : (byte)Common.SendStatusType.NEWSMS),
-        //        StatusCodeReturn = "InsertNew",
-        //        SendActive = true,
-        //        Description = "پیامک جدید"
-        //    };
-
-        //    _messageLogRepository.Add(messageLog);
-        //}
-
 
 
     }

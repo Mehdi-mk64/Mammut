@@ -13,29 +13,29 @@ namespace Services.Jobs
 {
 
     [DisallowConcurrentExecution]
-    public class MagfaSendSMSJob : IJob
+    public class SMSIRSendSMSJob : IJob
     {
         public async Task Execute(IJobExecutionContext context)
         {
             
             SMSSend smsSend = new SMSSend();
             
-            await smsSend.MagfaSendSMS();
+            await smsSend.SmsIrSendSMS();
 
         }
     }
 
-    [DisallowConcurrentExecution]
-    public class GSMSendSMSJob : IJob
-    {
-        public async Task Execute(IJobExecutionContext context)
-        {
+    //[DisallowConcurrentExecution]
+    //public class GSMSendSMSJob : IJob
+    //{
+    //    public async Task Execute(IJobExecutionContext context)
+    //    {
 
-            SMSSend smsSend = new SMSSend();
-            await smsSend.GsmSendSMS();
+    //        SMSSend smsSend = new SMSSend();
+    //        await smsSend.SmsIrSendSMS();
 
-        }
-    }
+    //    }
+    //}
 
 
     [DisallowConcurrentExecution]

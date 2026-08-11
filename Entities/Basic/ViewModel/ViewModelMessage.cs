@@ -24,16 +24,16 @@ namespace Entities.Basic.ViewModel
 
         public int MaximumTrySendSMS { get; set; }
 
-        public DateTime? DateSend { get; set; }
-        public  TimeSpan? TimeSend { get; set; }
+        public DateTime? DateTimeSend { get; set; }
+
 
         public string SmsProviderTitle  { get; set; }
      
-        public string GSMSenderTitle { get; set; }
+       
    
         public bool Importance { get; set; }
 
-        public bool OnlyGSMSend { get; set; }
+   
 
         public long? MessageSendID { get; set; }
 

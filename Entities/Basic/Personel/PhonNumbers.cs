@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Entities.Basic.SMS;
+﻿using Entities.Basic.SMS;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Entities.Basic.Personel
 {
@@ -21,10 +17,6 @@ namespace Entities.Basic.Personel
         public Person Phone_Person { get; set; }
         #endregion
         public ICollection<MessageSend> MessageSend_PhoneNumer { get; set; }
-
-
-        public ICollection<MessageSendPhone> PhonNumbers_MessageSendPhone { get; set; }
-
         #region Configuration
 
         public class PhonNumbersConfiguration : IEntityTypeConfiguration<PhonNumbers>
@@ -32,7 +24,7 @@ namespace Entities.Basic.Personel
             public void Configure(EntityTypeBuilder<PhonNumbers> builder)
             {
                 builder.ToTable("PhonNumbers", "HR");
-                builder.HasIndex(i => i.Nummber).IsUnique().HasDatabaseName("UK_PhoneNumber_Number");
+               // builder.HasIndex(i => i.Nummber).IsUnique().HasDatabaseName("UK_PhoneNumber_Number");
                 builder.HasOne(o => o.Phone_Person).WithMany(m => m.Person_PhoneNumbers).HasForeignKey(f => f.PersonID).HasConstraintName("FK_PhoneNumber_Person_ID").OnDelete(DeleteBehavior.Cascade);
             }
         }

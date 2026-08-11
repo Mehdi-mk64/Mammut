@@ -1,4 +1,5 @@
 ﻿using Common.Exeptions;
+using Common.Utilities;
 using IPE.SmsIrClient;
 using IPE.SmsIrClient.Models.Requests;
 using IPE.SmsIrClient.Models.Results;
@@ -16,19 +17,20 @@ using System.Threading.Tasks;
 
 namespace Services.SMS
 {
-    public class SMSIRService
+    public  class SMSIRService
     {
 
-
-        public static async Task<List<Entities.DTO.SmsIrResault>> SendBulkAsync(string apiKey, string message, List<string> phons, string? sendDateTime = null)
+        public static async Task<Entities.DTO.SmsIrResault> SendBulkAsync(string message, string phone, DateTime? sendDateTime = null)
         {
+            ConfigManager configManager = new ConfigManager();
+            string apiKey = configManager.GetKeyValue("SmsIRService", "Key");
             SmsIr smsIr = new SmsIr(apiKey);
             long lineNumber = 10004501;
             string messageText = message;
-            string[] mobiles = phons.ToArray();
+            string[] mobile = { phone };
 
             int? sendDateTimeservice = null;
-            DateTime.TryParse(sendDateTime, out DateTime inputSendDattime);
+            DateTime inputSendDattime = sendDateTime ?? DateTime.MinValue;
             if (inputSendDattime == DateTime.MinValue)
             {
                 long unixTime = new DateTimeOffset(inputSendDattime).ToUnixTimeSeconds();
@@ -36,51 +38,57 @@ namespace Services.SMS
             }
 
 
-            var response = await smsIr.BulkSendAsync(lineNumber, messageText, mobiles, sendDateTimeservice);
+            var response = await smsIr.BulkSendAsync(lineNumber, message, mobile, sendDateTimeservice);
             SendResult sendResult = response.Data;
-            List<Entities.DTO.SmsIrResault> smsIrResault = new List<Entities.DTO.SmsIrResault>();
-            byte statusCode = response.Status;
-            for (int i = 0;i < sendResult.MessageIds.Length;i++)
+
+            Entities.DTO.SmsIrResault smsIrResault = new Entities.DTO.SmsIrResault()
             {
-                smsIrResault.Add(new Entities.DTO.SmsIrResault
-                {
-                    MessageId = sendResult.MessageIds[i].GetValueOrDefault(0),
-                    Phone = phons[i],
-                    Status = statusCode == 1 ? true : false,
-                    StatusCode=statusCode
-                });
-            }
+                MessageId = sendResult.MessageIds[0].GetValueOrDefault(0),
+                Phone = phone,
+                Status = response.Status == 1 ? true : false,
+                StatusCode = response.Status
+            };
+
             return smsIrResault;
-                  
         }
+
+
+
+
+        //public static async Task<List<Entities.DTO.SmsIrResault>> SendBulkAsync(string apiKey, string message, string[] phons, string? sendDateTime = null)
+        //{
+        //    SmsIr smsIr = new SmsIr(apiKey);
+        //    long lineNumber = 10004501;
+        //    string messageText = message;
+        //    string[] mobiles = phons.ToArray();
+
+        //    int? sendDateTimeservice = null;
+        //    DateTime.TryParse(sendDateTime, out DateTime inputSendDattime);
+        //    if (inputSendDattime == DateTime.MinValue)
+        //    {
+        //        long unixTime = new DateTimeOffset(inputSendDattime).ToUnixTimeSeconds();
+        //        sendDateTimeservice = (int)unixTime;
+        //    }
+
+
+        //    var response = await smsIr.BulkSendAsync(lineNumber, messageText, mobiles, sendDateTimeservice);
+        //    SendResult sendResult = response.Data;
+        //    List<Entities.DTO.SmsIrResault> smsIrResault = new List<Entities.DTO.SmsIrResault>();
+        //    byte statusCode = response.Status;
+        //    for (int i = 0;i < sendResult.MessageIds.Length;i++)
+        //    {
+        //        smsIrResault.Add(new Entities.DTO.SmsIrResault
+        //        {
+        //            MessageId = sendResult.MessageIds[i].GetValueOrDefault(0),
+        //            Phone = phons[i],
+        //            Status = statusCode == 1 ? true : false,
+        //            StatusCode=statusCode
+        //        });
+        //    }
+        //    return smsIrResault;
+
+        //}
 
     }
 }
 
-
-    //    public static async Task GetSendReportsAsync()
-    //    {
-    //        SmsIr smsIr = new SmsIr("YOUR API KEY");
-
-    //        int pageNumber = 1;
-    //        int pageSize = 100; // max: 100
-
-    //        var response = await smsIr.GetLiveReportAsync(pageNumber, pageSize);
-
-    //        MessageReportResult[] messages = response.Data;
-    //        foreach (var message in messages)
-    //        {
-    //            int messageId = message.MessageId;
-    //            long lineNumber = message.LineNumber;
-    //            long mobile = message.Mobile;
-    //            string messageText = message.MessageText;
-    //            int sendUnixTime = message.SendDateTime;
-    //            byte? deliveryState = message.DeliveryState;
-    //            int? deliveryUnixTime = message.DeliveryDateTime;
-    //            decimal cost = message.Cost;
-    //        }
-    //    }
-
-
-
-    //    }

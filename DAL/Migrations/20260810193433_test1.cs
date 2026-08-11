@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace DAL.Migrations
 {
-    public partial class test3 : Migration
+    public partial class test1 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -530,13 +530,21 @@ namespace DAL.Migrations
                     PhoneNumberID = table.Column<long>(type: "bigint", nullable: false),
                     InsertDateTime = table.Column<DateTime>(type: "DateTime", nullable: false, defaultValueSql: "getdate()"),
                     MaximumTrySendSMS = table.Column<int>(type: "int", nullable: false),
+                    DateTimeSend = table.Column<DateTime>(type: "datetime", nullable: true, defaultValueSql: "getdate()"),
                     SmsProviderID = table.Column<int>(type: "int", nullable: true),
                     SendImportanceID = table.Column<byte>(type: "tinyint", nullable: false),
-                    UserID = table.Column<int>(type: "int", nullable: false)
+                    ApplicationUserId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MessageSend", x => x.ID);
+                    table.ForeignKey(
+                        name: "FK_MessageSend_ApplicationUser_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalSchema: "Security",
+                        principalTable: "ApplicationUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_MessageSend_PhoneNumber_ID",
                         column: x => x.PhoneNumberID,
@@ -558,41 +566,6 @@ namespace DAL.Migrations
                         principalTable: "SMSProvider",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_MessageSend_User_ID",
-                        column: x => x.UserID,
-                        principalSchema: "Security",
-                        principalTable: "ApplicationUser",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "MessageSendPhone",
-                schema: "SMS",
-                columns: table => new
-                {
-                    ID = table.Column<long>(type: "bigint", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    PhoneNumberID = table.Column<long>(type: "bigint", nullable: false),
-                    MessageSendID = table.Column<long>(type: "bigint", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_MessageSendPhone", x => x.ID);
-                    table.ForeignKey(
-                        name: "FK_MessageSendPhone_MessageSendID_ID",
-                        column: x => x.MessageSendID,
-                        principalSchema: "SMS",
-                        principalTable: "MessageSend",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_MessageSendPhone_PhoneNumber_ID",
-                        column: x => x.PhoneNumberID,
-                        principalSchema: "HR",
-                        principalTable: "PhonNumbers",
-                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateTable(
@@ -602,22 +575,22 @@ namespace DAL.Migrations
                 {
                     ID = table.Column<long>(type: "bigint", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    MessageSendPhoneID = table.Column<long>(type: "bigint", nullable: false),
-                    DateAction = table.Column<DateTime>(type: "date", nullable: false, defaultValueSql: "getdate()"),
-                    TimeAction = table.Column<TimeSpan>(type: "time", nullable: false, defaultValueSql: "getdate()"),
+                    MessageSendID = table.Column<long>(type: "bigint", nullable: false),
+                    ActionDateTime = table.Column<DateTime>(type: "DateTime", nullable: false),
                     SendStatusID = table.Column<byte>(type: "tinyint", nullable: false),
                     StatusCodeReturn = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     IsComplete = table.Column<bool>(type: "bit", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    SendActive = table.Column<bool>(type: "bit", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_MessageLog", x => x.ID);
                     table.ForeignKey(
-                        name: "FK_MessageLog_MessageSendPhone_ID",
-                        column: x => x.MessageSendPhoneID,
+                        name: "FK_MessageLog_MessageSend_ID",
+                        column: x => x.MessageSendID,
                         principalSchema: "SMS",
-                        principalTable: "MessageSendPhone",
+                        principalTable: "MessageSend",
                         principalColumn: "ID",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
@@ -646,8 +619,7 @@ namespace DAL.Migrations
                 values: new object[,]
                 {
                     { (byte)1, "مهم" },
-                    { (byte)2, "معمولی" },
-                    { (byte)3, "ارسال فقط با GSM" }
+                    { (byte)2, "معمولی" }
                 });
 
             migrationBuilder.InsertData(
@@ -658,10 +630,8 @@ namespace DAL.Migrations
                 {
                     { (byte)1, "پیامک جدید" },
                     { (byte)2, "ارسال مجدد" },
-                    { (byte)3, "ارسال با GSM" },
-                    { (byte)4, "ارسال موفق با API" },
-                    { (byte)5, "ارسال موفق با GSM" },
-                    { (byte)6, "عدم ارسال" }
+                    { (byte)3, "ارسال موفق با API" },
+                    { (byte)4, "عدم ارسال" }
                 });
 
             migrationBuilder.InsertData(
@@ -752,16 +722,22 @@ namespace DAL.Migrations
                 column: "ViewListID");
 
             migrationBuilder.CreateIndex(
-                name: "IX_MessageLog_MessageSendPhoneID",
+                name: "IX_MessageLog_MessageSendID",
                 schema: "SMS",
                 table: "MessageLog",
-                column: "MessageSendPhoneID");
+                column: "MessageSendID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MessageLog_SendStatusID",
                 schema: "SMS",
                 table: "MessageLog",
                 column: "SendStatusID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MessageSend_ApplicationUserId",
+                schema: "SMS",
+                table: "MessageSend",
+                column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_MessageSend_PhoneNumberID",
@@ -780,24 +756,6 @@ namespace DAL.Migrations
                 schema: "SMS",
                 table: "MessageSend",
                 column: "SmsProviderID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MessageSend_UserID",
-                schema: "SMS",
-                table: "MessageSend",
-                column: "UserID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MessageSendPhone_MessageSendID",
-                schema: "SMS",
-                table: "MessageSendPhone",
-                column: "MessageSendID");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_MessageSendPhone_PhoneNumberID",
-                schema: "SMS",
-                table: "MessageSendPhone",
-                column: "PhoneNumberID");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Person_GenderID",
@@ -856,13 +814,6 @@ namespace DAL.Migrations
                 schema: "HR",
                 table: "PhonNumbers",
                 column: "PersonID");
-
-            migrationBuilder.CreateIndex(
-                name: "UK_PhoneNumber_Number",
-                schema: "HR",
-                table: "PhonNumbers",
-                column: "Nummber",
-                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "UK_Post_Title",
@@ -980,7 +931,7 @@ namespace DAL.Migrations
                 schema: "Service");
 
             migrationBuilder.DropTable(
-                name: "MessageSendPhone",
+                name: "MessageSend",
                 schema: "SMS");
 
             migrationBuilder.DropTable(
@@ -1000,8 +951,8 @@ namespace DAL.Migrations
                 schema: "HR");
 
             migrationBuilder.DropTable(
-                name: "MessageSend",
-                schema: "SMS");
+                name: "ApplicationUser",
+                schema: "Security");
 
             migrationBuilder.DropTable(
                 name: "PhonNumbers",
@@ -1014,10 +965,6 @@ namespace DAL.Migrations
             migrationBuilder.DropTable(
                 name: "SMSProvider",
                 schema: "SMS");
-
-            migrationBuilder.DropTable(
-                name: "ApplicationUser",
-                schema: "Security");
 
             migrationBuilder.DropTable(
                 name: "Person",

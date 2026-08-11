@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260810152341_test4")]
-    partial class test4
+    [Migration("20260810212103_test2")]
+    partial class test2
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -264,10 +264,6 @@ namespace DAL.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("Nummber")
-                        .IsUnique()
-                        .HasDatabaseName("UK_PhoneNumber_Number");
-
                     b.HasIndex("PersonID");
 
                     b.ToTable("PhonNumbers", "HR");
@@ -339,10 +335,8 @@ namespace DAL.Migrations
                         .HasColumnType("bigint")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<DateTime>("DateAction")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("date")
-                        .HasDefaultValueSql("getdate()");
+                    b.Property<DateTime>("ActionDateTime")
+                        .HasColumnType("DateTime");
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -350,8 +344,11 @@ namespace DAL.Migrations
                     b.Property<bool>("IsComplete")
                         .HasColumnType("bit");
 
-                    b.Property<long>("MessageSendPhoneID")
+                    b.Property<long>("MessageSendID")
                         .HasColumnType("bigint");
+
+                    b.Property<bool>("SendActive")
+                        .HasColumnType("bit");
 
                     b.Property<byte>("SendStatusID")
                         .HasColumnType("tinyint");
@@ -359,14 +356,9 @@ namespace DAL.Migrations
                     b.Property<string>("StatusCodeReturn")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<TimeSpan>("TimeAction")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("time")
-                        .HasDefaultValueSql("getdate()");
-
                     b.HasKey("ID");
 
-                    b.HasIndex("MessageSendPhoneID");
+                    b.HasIndex("MessageSendID");
 
                     b.HasIndex("SendStatusID");
 
@@ -380,6 +372,14 @@ namespace DAL.Migrations
                         .HasColumnType("bigint")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<int?>("ApplicationUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DateTimeSend")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime")
+                        .HasDefaultValueSql("getdate()");
+
                     b.Property<DateTime>("InsertDateTime")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("DateTime")
@@ -392,7 +392,7 @@ namespace DAL.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("PhonNumbersID")
+                    b.Property<long>("PhoneNumberID")
                         .HasColumnType("bigint");
 
                     b.Property<byte>("SendImportanceID")
@@ -401,42 +401,17 @@ namespace DAL.Migrations
                     b.Property<int?>("SmsProviderID")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserID")
-                        .HasColumnType("int");
-
                     b.HasKey("ID");
 
-                    b.HasIndex("PhonNumbersID");
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("PhoneNumberID");
 
                     b.HasIndex("SendImportanceID");
 
                     b.HasIndex("SmsProviderID");
 
-                    b.HasIndex("UserID");
-
                     b.ToTable("MessageSend", "SMS");
-                });
-
-            modelBuilder.Entity("Entities.Basic.SMS.MessageSendPhone", b =>
-                {
-                    b.Property<long>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<long>("MessageSendID")
-                        .HasColumnType("bigint");
-
-                    b.Property<long>("PhoneNumberID")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("MessageSendID");
-
-                    b.HasIndex("PhoneNumberID");
-
-                    b.ToTable("MessageSendPhone", "SMS");
                 });
 
             modelBuilder.Entity("Entities.Basic.SMS.SMSProvider", b =>
@@ -511,11 +486,6 @@ namespace DAL.Migrations
                         {
                             ID = (byte)2,
                             Title = "معمولی"
-                        },
-                        new
-                        {
-                            ID = (byte)3,
-                            Title = "ارسال فقط با GSM"
                         });
                 });
 
@@ -551,21 +521,11 @@ namespace DAL.Migrations
                         new
                         {
                             ID = (byte)3,
-                            Title = "ارسال با GSM"
-                        },
-                        new
-                        {
-                            ID = (byte)4,
                             Title = "ارسال موفق با API"
                         },
                         new
                         {
-                            ID = (byte)5,
-                            Title = "ارسال موفق با GSM"
-                        },
-                        new
-                        {
-                            ID = (byte)6,
+                            ID = (byte)4,
                             Title = "عدم ارسال"
                         });
                 });
@@ -679,11 +639,8 @@ namespace DAL.Migrations
                     b.Property<DateTime?>("DateInsert")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DateSend")
+                    b.Property<DateTime?>("DateTimeSend")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("GSMSenderTitle")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("HasError")
                         .HasColumnType("bit");
@@ -711,9 +668,6 @@ namespace DAL.Migrations
 
                     b.Property<string>("SmsProviderTitle")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<TimeSpan?>("TimeSend")
-                        .HasColumnType("time");
 
                     b.HasKey("ID");
 
@@ -960,10 +914,10 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("Entities.Basic.SMS.MessageLog", b =>
                 {
-                    b.HasOne("Entities.Basic.SMS.MessageSendPhone", "MessageLog_MessageSendPhone")
-                        .WithMany("MessageSendPhone_MessageLog")
-                        .HasForeignKey("MessageSendPhoneID")
-                        .HasConstraintName("FK_MessageLog_MessageSendPhone_ID")
+                    b.HasOne("Entities.Basic.SMS.MessageSend", "MessageLog_MessageSend")
+                        .WithMany("MessageSend_MessageLog")
+                        .HasForeignKey("MessageSendID")
+                        .HasConstraintName("FK_MessageLog_MessageSend_ID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -974,16 +928,23 @@ namespace DAL.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("MessageLog_MessageSendPhone");
+                    b.Navigation("MessageLog_MessageSend");
 
                     b.Navigation("MessageLog_SendStatus");
                 });
 
             modelBuilder.Entity("Entities.Basic.SMS.MessageSend", b =>
                 {
-                    b.HasOne("Entities.Basic.Personel.PhonNumbers", null)
+                    b.HasOne("Entities.Basic.Security.ApplicationUser", null)
+                        .WithMany("ApplicationUser_MessageSend")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("Entities.Basic.Personel.PhonNumbers", "PhoneNummber")
                         .WithMany("MessageSend_PhoneNumer")
-                        .HasForeignKey("PhonNumbersID");
+                        .HasForeignKey("PhoneNumberID")
+                        .HasConstraintName("FK_MessageSend_PhoneNumber_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Entities.Basic.SMS.SendImportance", "MessageSend_SendImportance")
                         .WithMany("SendImportance_MessageSend")
@@ -997,39 +958,11 @@ namespace DAL.Migrations
                         .HasForeignKey("SmsProviderID")
                         .HasConstraintName("FK_MessageSend_SMSProvider_ID");
 
-                    b.HasOne("Entities.Basic.Security.ApplicationUser", "MessageSend_ApplicationUser")
-                        .WithMany("ApplicationUser_MessageSend")
-                        .HasForeignKey("UserID")
-                        .HasConstraintName("FK_MessageSend_User_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("MessageSend_ApplicationUser");
-
                     b.Navigation("MessageSend_SendImportance");
 
                     b.Navigation("MessageSend_SmsProvider");
-                });
 
-            modelBuilder.Entity("Entities.Basic.SMS.MessageSendPhone", b =>
-                {
-                    b.HasOne("Entities.Basic.SMS.MessageSend", "MessageSendPhone_MessageSend")
-                        .WithMany("MessageSend_MessageSendPhone")
-                        .HasForeignKey("MessageSendID")
-                        .HasConstraintName("FK_MessageSendPhone_MessageSendID_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Entities.Basic.Personel.PhonNumbers", "MessageSendPhone_PhonNumbers")
-                        .WithMany("PhonNumbers_MessageSendPhone")
-                        .HasForeignKey("PhoneNumberID")
-                        .HasConstraintName("FK_MessageSendPhone_PhoneNumber_ID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("MessageSendPhone_MessageSend");
-
-                    b.Navigation("MessageSendPhone_PhonNumbers");
+                    b.Navigation("PhoneNummber");
                 });
 
             modelBuilder.Entity("Entities.Basic.Security.AccesseGroup", b =>
@@ -1146,8 +1079,6 @@ namespace DAL.Migrations
             modelBuilder.Entity("Entities.Basic.Personel.PhonNumbers", b =>
                 {
                     b.Navigation("MessageSend_PhoneNumer");
-
-                    b.Navigation("PhonNumbers_MessageSendPhone");
                 });
 
             modelBuilder.Entity("Entities.Basic.Personel.Post", b =>
@@ -1164,12 +1095,7 @@ namespace DAL.Migrations
 
             modelBuilder.Entity("Entities.Basic.SMS.MessageSend", b =>
                 {
-                    b.Navigation("MessageSend_MessageSendPhone");
-                });
-
-            modelBuilder.Entity("Entities.Basic.SMS.MessageSendPhone", b =>
-                {
-                    b.Navigation("MessageSendPhone_MessageLog");
+                    b.Navigation("MessageSend_MessageLog");
                 });
 
             modelBuilder.Entity("Entities.Basic.SMS.SMSProvider", b =>

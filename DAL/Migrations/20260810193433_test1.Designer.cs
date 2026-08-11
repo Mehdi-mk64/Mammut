@@ -4,14 +4,16 @@ using DAL;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace DAL.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260810193433_test1")]
+    partial class test1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -173,15 +175,6 @@ namespace DAL.Migrations
                             IsActive = true,
                             LastName = "ناشناس",
                             PersonCode = "0"
-                        },
-                        new
-                        {
-                            ID = 2L,
-                            FirstName = "admin",
-                            GenderID = (byte)2,
-                            IsActive = true,
-                            LastName = "admin",
-                            PersonCode = "1"
                         });
                 });
 
@@ -631,42 +624,6 @@ namespace DAL.Migrations
                         .IsUnique();
 
                     b.ToTable("ApplicationUser", "Security");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "STATIC-ADMIN-CONCURRENCY-STAMP",
-                            Email = "admin@mammut.local",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@MAMMUT.LOCAL",
-                            NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAEAACcQAAAAEM4iSe/qOARx2eD6pKvhhQm3UWBqdcmDfG3kGcnO35f6/Lk23Z50qF5kkTnz+UgURw==",
-                            PersonID = 2L,
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "STATIC-ADMIN-SECURITY-STAMP",
-                            TwoFactorEnabled = false,
-                            UserName = "admin"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "STATIC-USER-CONCURRENCY-STAMP",
-                            Email = "user@mammut.local",
-                            EmailConfirmed = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "USER@MAMMUT.LOCAL",
-                            NormalizedUserName = "user",
-                            PasswordHash = "AQAAAAEAACcQAAAAEBHbTAxrCoQY1uFWBCCDS9kjxtCBb2WFcUW4zY42FnLL1b5L9dOCNLt6mv3rbQQ17Q==",
-                            PersonID = 1L,
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "STATIC-USER-SECURITY-STAMP",
-                            TwoFactorEnabled = false,
-                            UserName = "user"
-                        });
                 });
 
             modelBuilder.Entity("Entities.Basic.ViewModel.ViewModelMessage", b =>
@@ -682,8 +639,11 @@ namespace DAL.Migrations
                     b.Property<DateTime?>("DateInsert")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("DateTimeSend")
+                    b.Property<DateTime?>("DateSend")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("GSMSenderTitle")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("HasError")
                         .HasColumnType("bit");
@@ -703,11 +663,17 @@ namespace DAL.Migrations
                     b.Property<long?>("MessageSendID")
                         .HasColumnType("bigint");
 
+                    b.Property<bool>("OnlyGSMSend")
+                        .HasColumnType("bit");
+
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SmsProviderTitle")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<TimeSpan?>("TimeSend")
+                        .HasColumnType("time");
 
                     b.HasKey("ID");
 
@@ -741,22 +707,6 @@ namespace DAL.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ConcurrencyStamp = "ADMIN-ROLE-CONCURRENCY-STAMP",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ConcurrencyStamp = "USERS-ROLE-CONCURRENCY-STAMP",
-                            Name = "Users",
-                            NormalizedName = "USERS"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -839,18 +789,6 @@ namespace DAL.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles");
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 1,
-                            RoleId = 1
-                        },
-                        new
-                        {
-                            UserId = 2,
-                            RoleId = 2
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>

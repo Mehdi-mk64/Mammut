@@ -21,8 +21,10 @@ namespace SystemManagment.Controller.Base.Security
         }
 
 
+
+
         [HttpGet]
-        [Route("AccessGroup/{personID}")]
+        [Route("AccessGroup/personID")]
         public async Task<IActionResult> GetAccessGroupByID(long personID, CancellationToken cancellationToken)
         {
             var res = await _repository.TableNoTracking
@@ -36,7 +38,7 @@ namespace SystemManagment.Controller.Base.Security
 
         [Authorize]
         [HttpGet]
-        [Route("GetListGroup}")]
+        [Route("GetListGroup")]
         public async Task<IActionResult> GetListGroup(CancellationToken cancellationToken)
         {
             var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);

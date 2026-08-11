@@ -25,12 +25,12 @@ namespace WebFramework.StartupConfig
             services.AddSingleton<IJobFactory, SingletonJobFactory>();
             services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
 
-            services.AddSingleton<MagfaSendSMSJob>();
-            services.AddSingleton(new JobSchedule(jobType: typeof(MagfaSendSMSJob), cronExpression: ConfigManager.Instance.GetKeyValue("JobScheduleTime", "MagfaSendSMS")));
+            services.AddSingleton<SMSIRSendSMSJob>();
+            services.AddSingleton(new JobSchedule(jobType: typeof(SMSIRSendSMSJob), cronExpression: ConfigManager.Instance.GetKeyValue("JobScheduleTime", "SMSIRSendSMSJob")));
 
 
-            services.AddSingleton<GSMSendSMSJob>();
-            services.AddSingleton(new JobSchedule(jobType: typeof(GSMSendSMSJob), cronExpression: ConfigManager.Instance.GetKeyValue("JobScheduleTime", "GSMSendSMS")));
+            //services.AddSingleton<GSMSendSMSJob>();
+            //services.AddSingleton(new JobSchedule(jobType: typeof(GSMSendSMSJob), cronExpression: ConfigManager.Instance.GetKeyValue("JobScheduleTime", "GSMSendSMS")));
 
 
             services.AddSingleton<InsertDataJob>();

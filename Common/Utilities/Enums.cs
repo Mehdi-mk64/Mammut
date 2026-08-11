@@ -63,8 +63,7 @@ namespace Common
     public enum SendImportanceType : byte
     {
         Important = 1,
-        Normal,
-        ForceGSM
+        Normal
 
 
     }
@@ -72,9 +71,7 @@ namespace Common
     {
         NEWSMS = 1,
         SendAgain,
-        SendGSM,
         API_OK,
-        GSM_OK,
         Fault
     }
     public enum GenderType
