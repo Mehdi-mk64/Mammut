@@ -309,6 +309,98 @@ namespace HumanResource.Controller.Security
         }
 
 
+        [HttpGet("SearchByPersonCode")]
+        public async Task<IActionResult> SearchByPersonCode([FromQuery] string personCode)
+        {
+            if (string.IsNullOrWhiteSpace(personCode))
+            {
+                return BadRequest(new
+                {
+                    message = "کد پرسنلی الزامی است."
+                });
+            }
+
+            personCode = personCode.Trim();
+
+            var user = await _context.Users
+                .AsNoTracking()
+                .Where(x => x.Person.PersonCode == personCode)
+                .Select(x => new
+                {
+                    x.Id,
+                    x.UserName,
+                    x.PersonID,
+                    PersonCode = x.Person.PersonCode,
+                    FirstName = x.Person.FirstName,
+                    LastName = x.Person.LastName,
+                    FullName =  x.Person.FirstName + " " + x.Person.LastName,
+                    IsDisabled = x.LockoutEnd != null &&  x.LockoutEnd > DateTimeOffset.UtcNow,
+                    Roles = _context.UserRoles
+                        .Where(ur => ur.UserId == x.Id)
+                        .Join(
+                            _context.Roles,
+                            ur => ur.RoleId,
+                            role => role.Id,
+                            (ur, role) => role.Name
+                        )
+                        .ToList()
+                })
+                .FirstOrDefaultAsync();
+
+            if (user == null)
+            {
+                return NotFound(new{  message = "برای این کد پرسنلی کاربری پیدا نشد."  });
+            }
+
+            return Ok(user);
+        }
+
+
+
+
+        [HttpPut("ChangeRole")]
+        public async Task<IActionResult> ChangeRole(ChangeUserRoleDto model)
+        {
+            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
+
+            if (user == null)
+            {
+                return NotFound(new { message = "کاربر پیدا نشد."  });
+            }
+
+            if (!await _roleManager
+                .RoleExistsAsync(model.RoleName))
+            {
+                return BadRequest(new { message = "نقش موردنظر وجود ندارد." });
+            }
+
+            var currentRoles = await _userManager.GetRolesAsync(user);
+
+            if (currentRoles.Contains(model.RoleName))
+            {
+                return BadRequest(new { message = "کاربر در حال حاضر همین نقش را دارد." });
+            }
+
+            if (currentRoles.Any())
+            {
+                var removeResult = await _userManager.RemoveFromRolesAsync(user,currentRoles);
+
+                if (!removeResult.Succeeded)
+                    return BadRequest(removeResult.Errors);
+            }
+
+            var addResult =await _userManager.AddToRoleAsync(user,model.RoleName);
+
+            if (!addResult.Succeeded)
+                return BadRequest(addResult.Errors);
+
+            return Ok(new { message = "نقش کاربر با موفقیت تغییر کرد." });
+        }
+
+
+
+
+
 
     }
 }
