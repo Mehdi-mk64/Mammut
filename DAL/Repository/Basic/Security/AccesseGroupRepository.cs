@@ -36,5 +36,47 @@ namespace DAL.Repository.Basic.Security
                     cancellationToken);
         }
 
+
+        public async Task<List<long>> GetUserGroupIdsAsync( int userID, CancellationToken cancellationToken = default)
+        {
+            return await TableNoTracking
+                .Where(x => x.UserID == userID)
+                .Select(x => x.GroupID)
+                .ToListAsync(cancellationToken);
+        }
+
+        public async Task<bool> GrantAsync( int userID, long groupID, CancellationToken cancellationToken = default)
+        {
+            var exists = await TableNoTracking.AnyAsync(
+                x => x.UserID == userID &&
+                     x.GroupID == groupID,
+                cancellationToken);
+
+            if (exists)
+                return false;
+
+            var entity = new AccesseGroup { UserID = userID, GroupID = groupID };
+
+            await AddAsync(entity, cancellationToken);
+
+            return true;
+        }
+
+        public async Task<bool> RevokeAsync( int userID, long groupID, CancellationToken cancellationToken = default)
+        {
+            var entity = await Table
+                .FirstOrDefaultAsync(
+                    x => x.UserID == userID &&
+                         x.GroupID == groupID,
+                    cancellationToken);
+
+            if (entity == null)
+                return false;
+
+            await DeleteAsync(entity, cancellationToken);
+
+            return true;
+        }
+
     }
 }
