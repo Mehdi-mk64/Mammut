@@ -132,7 +132,7 @@ namespace DAL.Repository.Basic.SMS
 
 
             // ابتدا MessageSend ذخیره می‌شود تا ID داشته باشیم
-            await base.AddAsync(entity, cancellationToken,   saveNow);
+            await base.AddAsync(entity, cancellationToken, true);
 
 
             // ارسال واقعی SMS
@@ -151,10 +151,11 @@ namespace DAL.Repository.Basic.SMS
                 StatusCodeReturn = result.StatusCode.ToString(),
 
                 IsComplete = result.Status,
+              
 
                 ProviderMessageID= result.MessageId,
 
-                SendActive = !result.Status,
+                SendActive = true,
 
                 Description = result.Status ? $"ارسال موفق. MessageId: {result.MessageId}" : $"ارسال ناموفق. StatusCode: {result.StatusCode}"
             };
