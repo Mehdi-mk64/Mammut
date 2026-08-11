@@ -40,6 +40,9 @@ namespace DAL.Repository.Basic.SMS
             string apiKey = configManager.GetKeyValue("SmsIRService", "Key");
             SmsIr smsIr = new SmsIr(apiKey);
             long lineNumber = 10004501;
+
+            string str = configManager.GetKeyValue("SmsIRService", "Nummber");
+
             long.TryParse(configManager.GetKeyValue("SmsIRService", "Nummber"), out lineNumber);
             string messageText = message;
             string[] mobile = { phone };
@@ -187,7 +190,7 @@ namespace DAL.Repository.Basic.SMS
 
 
             //// ابتدا MessageSend ذخیره می‌شود تا ID داشته باشیم
-            await base.AddAsync(entity, cancellationToken, true);
+            await base.AddAsync(entity, cancellationToken, saveNow);
 
             //try
             //{

@@ -54,8 +54,7 @@ namespace SMSAPI.Controller.SMS
 
 
             var phoneNumbers =
-                await _groupRepository
-                    .GetPhoneNumbersByGroupIDAsync(model.GroupID,cancellationToken);
+                await _groupRepository.GetPhoneNumbersByGroupIDAsync(model.GroupID,cancellationToken);
 
             if (phoneNumbers == null || !phoneNumbers.Any())
                 return NotFound(
@@ -72,7 +71,7 @@ namespace SMSAPI.Controller.SMS
                 {
                     var messageSend = new MessageSend
                     {
-                        Message = model.Message,
+                        Message = model.Message ,
                         PhoneNumberID = phone.PhoneNumberID,
                         DateTimeSend = model.DateTimeSend,
                         SmsProviderID = model.SmsProviderID,
