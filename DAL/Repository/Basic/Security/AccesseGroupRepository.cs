@@ -27,5 +27,14 @@ namespace DAL.Repository.Basic.Security
                 .ToListAsync(cancellationToken);
         }
 
+        public async Task<bool> HasAccessToGroupAsync(long userID, long groupID,CancellationToken cancellationToken)
+        {
+            return await TableNoTracking
+                .AnyAsync(
+                    x => x.UserID == userID &&
+                         x.GroupID == groupID,
+                    cancellationToken);
+        }
+
     }
 }

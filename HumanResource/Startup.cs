@@ -52,7 +52,6 @@ namespace SystemManagment
             services.AddJWTAuthentication(Configuration);
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Gender>), typeof(DAL.Repository.Basic.Personal.GenderRepository));
-            services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Group>), typeof(DAL.Repository.Basic.Personal.GroupRepository));
 
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Person>), typeof(DAL.Repository.Basic.Personal.PersonRepository));
@@ -65,6 +64,9 @@ namespace SystemManagment
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Security.AccesseGroup>),typeof(DAL.Repository.Basic.Security.AccesseGroupRepository));
             services.AddScoped<DAL.Repository.Basic.Security.AccesseGroupRepository>();
+
+            services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Group>), typeof(DAL.Repository.Basic.Personal.GroupRepository));
+            services.AddScoped<DAL.Repository.Basic.Personal.GroupRepository>();
 
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.MessageLog>), typeof(DAL.Repository.Basic.SMS.MessageLogRepository));
