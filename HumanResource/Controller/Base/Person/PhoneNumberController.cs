@@ -1,9 +1,10 @@
 ﻿using DAL.Repository;
 using Entities.Basic.Personel;
-using SystemManagment.Controller.Base;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using SystemManagment.Controller.Base;
 
 namespace SMSAPI.Controller.Person
 {
@@ -12,5 +13,8 @@ namespace SMSAPI.Controller.Person
         public PhoneNumberController(IRepository<PhonNumbers> repository) : base(repository)
         {
         }
+        
+
+
     }
 }

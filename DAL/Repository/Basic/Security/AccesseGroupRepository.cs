@@ -1,4 +1,5 @@
 ﻿
+using DAL.Repository.Base;
 using Entities.Base;
 using Entities.Basic.Personel;
 using Entities.Basic.Security;
@@ -9,10 +10,10 @@ using System.Threading;
 using System.Threading.Tasks;
 
 
-namespace DAL.Repository.Basic.Personal
+namespace DAL.Repository.Basic.Security
 
 {
-    public class AccesseGroupRepository : Repository<AccesseGroup>
+    public class AccesseGroupRepository :Repository<AccesseGroup>
     {
         public AccesseGroupRepository(AppDbContext dbContext) : base(dbContext)
         {

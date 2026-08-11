@@ -1,4 +1,7 @@
 using Common.Security;
+using DAL.Repository.Base;
+using DAL.Repository.Basic.Personal;
+using DAL.Repository.Basic.Security;
 using Entities.Basic.Security;
 using Entities.Basic.Security;
 using Microsoft.AspNetCore.Builder;
@@ -50,6 +53,8 @@ namespace SystemManagment
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Gender>), typeof(DAL.Repository.Basic.Personal.GenderRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Group>), typeof(DAL.Repository.Basic.Personal.GroupRepository));
+
+
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Person>), typeof(DAL.Repository.Basic.Personal.PersonRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PhonNumbers>), typeof(DAL.Repository.Basic.Personal.PhonNummberRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.Post>), typeof(DAL.Repository.Basic.Personal.PostRepository));
@@ -57,6 +62,10 @@ namespace SystemManagment
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PersonGroup>), typeof(DAL.Repository.Basic.Personal.PersonGroupRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PersonPost>), typeof(DAL.Repository.Basic.Personal.PersonPostRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Personel.PersonUnit>), typeof(DAL.Repository.Basic.Personal.PersonUnitRepository));
+
+            services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.Security.AccesseGroup>),typeof(DAL.Repository.Basic.Security.AccesseGroupRepository));
+            services.AddScoped<DAL.Repository.Basic.Security.AccesseGroupRepository>();
+
 
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.MessageLog>), typeof(DAL.Repository.Basic.SMS.MessageLogRepository));
             services.AddScoped(typeof(DAL.Repository.IRepository<Entities.Basic.SMS.MessageSend>), typeof(DAL.Repository.Basic.SMS.MessageSendRepository));

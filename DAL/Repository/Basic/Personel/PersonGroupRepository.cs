@@ -1,6 +1,7 @@
 ﻿
 using Entities.Basic.Personel;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -12,7 +13,6 @@ namespace DAL.Repository.Basic.Personal
         public PersonGroupRepository(AppDbContext dbContext) : base(dbContext)
         {
         }
-
 
     }
 }
