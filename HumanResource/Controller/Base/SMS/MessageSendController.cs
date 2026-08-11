@@ -36,12 +36,9 @@ namespace SMSAPI.Controller.SMS
 
         [Authorize]
         [HttpPost("SendToGroup")]
-        public async Task<IActionResult> SendToGroup(
-       [FromBody] SendToGroupDto model,
-       CancellationToken cancellationToken)
+        public async Task<IActionResult> SendToGroup([FromBody] SendToGroupDto model, CancellationToken cancellationToken)
         {
-            var userIdClaim =
-                User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (string.IsNullOrWhiteSpace(userIdClaim))
                 return Unauthorized();
@@ -52,10 +49,7 @@ namespace SMSAPI.Controller.SMS
 
             var hasAccess =
                 await _accesseGroupRepository
-                    .HasAccessToGroupAsync(
-                        userID,
-                        model.GroupID,
-                        cancellationToken);
+                    .HasAccessToGroupAsync(userID, model.GroupID, cancellationToken);
 
             if (!hasAccess)
                 return Forbid();
@@ -63,9 +57,7 @@ namespace SMSAPI.Controller.SMS
 
             var phoneNumbers =
                 await _groupRepository
-                    .GetPhoneNumbersByGroupIDAsync(
-                        model.GroupID,
-                        cancellationToken);
+                    .GetPhoneNumbersByGroupIDAsync(model.GroupID,cancellationToken);
 
             if (phoneNumbers == null || !phoneNumbers.Any())
                 return NotFound(
@@ -78,22 +70,16 @@ namespace SMSAPI.Controller.SMS
                 {
                     Message = model.Message,
 
-                    PhoneNumberID =
-                        phone.PhoneNumberID,
+                    PhoneNumberID = phone.PhoneNumberID,
 
-                    DateTimeSend =
-                        model.DateTimeSend,
+                    DateTimeSend = model.DateTimeSend,
 
-                    SmsProviderID =
-                        model.SmsProviderID,
+                    SmsProviderID = model.SmsProviderID,
 
-                    SendImportanceID =
-                        model.SendImportanceID
+                    SendImportanceID =  model.SendImportanceID
                 };
 
-                await _repository.AddAsync(
-                    messageSend,
-                    cancellationToken);
+                await _repository.AddAsync(messageSend, cancellationToken);
             }
 
 

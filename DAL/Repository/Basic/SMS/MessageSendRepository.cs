@@ -96,10 +96,7 @@ namespace DAL.Repository.Basic.SMS
 
 
 
-        public override async Task AddAsync(
-    MessageSend entity,
-    CancellationToken cancellationToken,
-    bool saveNow = true)
+        public override async Task AddAsync(MessageSend entity,CancellationToken cancellationToken, bool saveNow = true)
         {
             entity.InsertDateTime = DateTime.Now;
 
@@ -114,17 +111,11 @@ namespace DAL.Repository.Basic.SMS
 
 
             // ابتدا MessageSend ذخیره می‌شود تا ID داشته باشیم
-            await base.AddAsync(
-                entity,
-                cancellationToken,
-                saveNow);
+            await base.AddAsync(entity, cancellationToken,   saveNow);
 
 
             // ارسال واقعی SMS
-            var result = await SendBulkAsync(
-                entity.Message,
-                phone,
-                entity.DateTimeSend);
+            var result = await SendBulkAsync( entity.Message, phone, entity.DateTimeSend);
 
 
             // ثبت نتیجه ارسال
