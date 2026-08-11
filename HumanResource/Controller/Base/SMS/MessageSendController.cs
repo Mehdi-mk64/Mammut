@@ -47,9 +47,7 @@ namespace SMSAPI.Controller.SMS
                 return Unauthorized();
 
 
-            var hasAccess =
-                await _accesseGroupRepository
-                    .HasAccessToGroupAsync(userID, model.GroupID, cancellationToken);
+            var hasAccess =  await _accesseGroupRepository.HasAccessToGroupAsync(userID, model.GroupID, cancellationToken);
 
             if (!hasAccess)
                 return Forbid();

@@ -139,33 +139,30 @@ namespace DAL.Repository.Basic.SMS
             var result = await SendBulkAsync( entity.Message, phone, entity.DateTimeSend);
 
 
-            // ثبت نتیجه ارسال
+
             var messageLog = new MessageLog
             {
                 MessageSendID = entity.ID,
 
                 ActionDateTime = DateTime.Now,
 
-                SendStatusID = result.Status
-                    ? (byte)Common.SendStatusType.API_OK
-                    : (byte)Common.SendStatusType.SendAgain,
+                SendStatusID = result.Status ? (byte)Common.SendStatusType.API_OK : (byte)Common.SendStatusType.SendAgain,
 
-                StatusCodeReturn =
-                    result.StatusCode.ToString(),
-
-                SendActive = true,
+                StatusCodeReturn = result.StatusCode.ToString(),
 
                 IsComplete = result.Status,
 
-                Description = result.Status
-                    ? "پیامک با موفقیت ارسال شد."
-                    : "ارسال پیامک ناموفق بود."
-            };
+                ProviderMessageID= result.MessageId,
 
+                SendActive = !result.Status,
+
+                Description = result.Status ? $"ارسال موفق. MessageId: {result.MessageId}" : $"ارسال ناموفق. StatusCode: {result.StatusCode}"
+            };
 
             await _messageLogRepository.AddAsync(
                 messageLog,
                 cancellationToken);
+
         }
 
 

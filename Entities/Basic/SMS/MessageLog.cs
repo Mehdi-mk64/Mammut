@@ -20,6 +20,8 @@ namespace Entities.Basic.SMS
 
         public string StatusCodeReturn { get; set; }
 
+        public long? ProviderMessageID { get; set; }
+
         public bool IsComplete { get; set; }
 
         public string Description { get; set; }
