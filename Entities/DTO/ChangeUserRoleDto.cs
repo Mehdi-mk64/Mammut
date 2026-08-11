@@ -10,6 +10,9 @@ namespace Entities.DTO
     {
         public int UserId { get; set; }
 
-        public string RoleName { get; set; }
+        public string OldRoleName { get; set; }
+
+        public string NewRoleName { get; set; }
     }
+
 }

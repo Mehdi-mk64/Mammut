@@ -357,46 +357,67 @@ namespace HumanResource.Controller.Security
 
 
 
-
         [HttpPut("ChangeRole")]
         public async Task<IActionResult> ChangeRole(ChangeUserRoleDto model)
         {
-            var user = await _userManager.FindByIdAsync(model.UserId.ToString());
+            var user = await _userManager
+                .FindByIdAsync(model.UserId.ToString());
 
             if (user == null)
             {
-                return NotFound(new { message = "کاربر پیدا نشد."  });
+                return NotFound(new{ message = "کاربر پیدا نشد." });
             }
 
-            if (!await _roleManager
-                .RoleExistsAsync(model.RoleName))
+            if (string.IsNullOrWhiteSpace(model.OldRoleName) || string.IsNullOrWhiteSpace(model.NewRoleName))
             {
-                return BadRequest(new { message = "نقش موردنظر وجود ندارد." });
+                return BadRequest(new { message = "نقش فعلی و نقش جدید الزامی هستند." });
             }
 
-            var currentRoles = await _userManager.GetRolesAsync(user);
-
-            if (currentRoles.Contains(model.RoleName))
+            if (!await _roleManager .RoleExistsAsync(model.NewRoleName))
             {
-                return BadRequest(new { message = "کاربر در حال حاضر همین نقش را دارد." });
+                return BadRequest(new { message = "نقش جدید وجود ندارد." });
             }
 
-            if (currentRoles.Any())
+            var hasOldRole = await _userManager.IsInRoleAsync( user, model.OldRoleName);
+
+            if (!hasOldRole)
             {
-                var removeResult = await _userManager.RemoveFromRolesAsync(user,currentRoles);
-
-                if (!removeResult.Succeeded)
-                    return BadRequest(removeResult.Errors);
+                return BadRequest(new { message = "کاربر نقش انتخاب‌شده را ندارد." });
             }
 
-            var addResult =await _userManager.AddToRoleAsync(user,model.RoleName);
+            if (string.Equals( model.OldRoleName, model.NewRoleName, StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new { message = "نقش جدید با نقش فعلی یکسان است." });
+            }
+
+            var alreadyHasNewRole = await _userManager.IsInRoleAsync( user, model.NewRoleName);
+
+            if (alreadyHasNewRole)
+            {
+                return BadRequest(new { message = "کاربر از قبل نقش جدید را دارد." });
+            }
+
+            // فقط همان Role انتخاب‌شده حذف می‌شود
+            var removeResult = await _userManager.RemoveFromRoleAsync( user, model.OldRoleName);
+
+            if (!removeResult.Succeeded)
+            {
+                return BadRequest(removeResult.Errors);
+            }
+
+            // Role جدید اضافه می‌شود
+            var addResult = await _userManager.AddToRoleAsync( user, model.NewRoleName);
 
             if (!addResult.Succeeded)
+            {
+                // اگر Add شکست خورد، Role قبلی را برگردان
+                await _userManager.AddToRoleAsync( user, model.OldRoleName);
+
                 return BadRequest(addResult.Errors);
+            }
 
             return Ok(new { message = "نقش کاربر با موفقیت تغییر کرد." });
         }
-
 
 
 
