@@ -177,71 +177,68 @@ namespace DAL.Repository.Basic.SMS
             entity.InsertDateTime = DateTime.Now;
 
             // شماره تلفن را با PhoneNumberID پیدا می‌کنیم
-            var phone = await TableNoTrackingOf<PhonNumbers>()
-                .Where(x => x.ID == entity.PhoneNumberID)
-                .Select(x => x.Nummber)
-                .FirstOrDefaultAsync(cancellationToken);
+            //var phone = await TableNoTrackingOf<PhonNumbers>()
+            //    .Where(x => x.ID == entity.PhoneNumberID)
+            //    .Select(x => x.Nummber)
+            //    .FirstOrDefaultAsync(cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(phone))
-                throw new Exception("شماره تلفن موردنظر پیدا نشد.");
+            //if (string.IsNullOrWhiteSpace(phone))
+            //    throw new Exception("شماره تلفن موردنظر پیدا نشد.");
 
 
-            // ابتدا MessageSend ذخیره می‌شود تا ID داشته باشیم
+            //// ابتدا MessageSend ذخیره می‌شود تا ID داشته باشیم
             await base.AddAsync(entity, cancellationToken, true);
 
-            try
-            {
-                var result = await SendBulkAsync(entity.Message,phone, entity.DateTimeSend);
+            //try
+            //{
+            //    var result = await SendBulkAsync(entity.Message,phone, entity.DateTimeSend);
 
-                var messageLog = new MessageLog
-                {
-                    MessageSendID = entity.ID,
-                    ActionDateTime = DateTime.Now,
+            //    var messageLog = new MessageLog
+            //    {
+            //        MessageSendID = entity.ID,
+            //        ActionDateTime = DateTime.Now,
 
-                    SendStatusID = result.Status
-                        ? (byte)Common.SendStatusType.API_OK
-                        : (byte)Common.SendStatusType.SendAgain,
+            //        SendStatusID = result.Status
+            //            ? (byte)Common.SendStatusType.API_OK
+            //            : (byte)Common.SendStatusType.SendAgain,
 
-                    StatusCodeReturn = result.StatusCode.ToString(),
+            //        StatusCodeReturn = result.StatusCode.ToString(),
 
-                    SendActive = true,
-                    IsComplete = result.Status,
+            //        SendActive = true,
+            //        IsComplete = result.Status,
 
-                    Description = result.Status
-                        ? "پیامک با موفقیت ارسال شد."
-                        : "ارسال پیامک ناموفق بود."
-                };
+            //        Description = result.Status
+            //            ? "پیامک با موفقیت ارسال شد."
+            //            : "ارسال پیامک ناموفق بود."
+            //    };
 
-                await _messageLogRepository.AddAsync(messageLog, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                var messageLog = new MessageLog
-                {
-                    MessageSendID = entity.ID,
-                    ActionDateTime = DateTime.Now,
+            //    await _messageLogRepository.AddAsync(messageLog, cancellationToken);
+            //}
+            //catch (Exception ex)
+            //{
+            //    var messageLog = new MessageLog
+            //    {
+            //        MessageSendID = entity.ID,
+            //        ActionDateTime = DateTime.Now,
 
-                    // طبق بیزینس شما
-                    SendStatusID =
-                        (byte)Common.SendStatusType.SendAgain,
+            //        // طبق بیزینس شما
+            //        SendStatusID =
+            //            (byte)Common.SendStatusType.SendAgain,
 
-                    StatusCodeReturn = "EXCEPTION",
+            //        StatusCodeReturn = "EXCEPTION",
 
-                    SendActive = true,
-                    IsComplete = false,
+            //        SendActive = true,
+            //        IsComplete = false,
 
-                    Description = ex.Message
-                };
+            //        Description = ex.Message
+            //    };
 
-                await _messageLogRepository.AddAsync(messageLog,cancellationToken);
+            //    await _messageLogRepository.AddAsync(messageLog,cancellationToken);
 
-                // مهم:
-                // Controller باید بفهمد این شماره Fail شده
-                throw;
-            }
-
-
-
+            //    // مهم:
+            //    // Controller باید بفهمد این شماره Fail شده
+            //    throw;
+            //}
 
 
         }
@@ -250,27 +247,27 @@ namespace DAL.Repository.Basic.SMS
 
 
 
-        public override void Add(MessageSend entity, bool saveNow = true)
-        {
-            entity.InsertDateTime = DateTime.Now;
-            base.Add(entity, saveNow);
+        //public override void Add(MessageSend entity, bool saveNow = true)
+        //{
+        //    entity.InsertDateTime = DateTime.Now;
+        //    base.Add(entity, saveNow);
 
-            string phone = entity.PhoneNummber.Nummber;
+        //    string phone = entity.PhoneNummber.Nummber;
 
-            var res = SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
+        //    var res = SendBulkAsync(entity.Message, entity.PhoneNummber.Nummber, entity.DateTimeSend);
 
 
-            MessageLog messageLog = new MessageLog
-            {
-                MessageSendID = entity.ID,
-                ActionDateTime = entity.InsertDateTime,
-                SendStatusID = res.Result.Status == true ? (byte)Common.SendStatusType.API_OK : (byte)Common.SendStatusType.SendAgain,
-                StatusCodeReturn = res.Result.StatusCode.ToString(),
-                SendActive = true,
-                Description = "پیامک جدید"
-            };
-            _messageLogRepository.Add(messageLog);
-        }
+        //    MessageLog messageLog = new MessageLog
+        //    {
+        //        MessageSendID = entity.ID,
+        //        ActionDateTime = entity.InsertDateTime,
+        //        SendStatusID = res.Result.Status == true ? (byte)Common.SendStatusType.API_OK : (byte)Common.SendStatusType.SendAgain,
+        //        StatusCodeReturn = res.Result.StatusCode.ToString(),
+        //        SendActive = true,
+        //        Description = "پیامک جدید"
+        //    };
+        //    _messageLogRepository.Add(messageLog);
+        //}
 
 
     }

@@ -73,13 +73,9 @@ namespace SMSAPI.Controller.SMS
                     var messageSend = new MessageSend
                     {
                         Message = model.Message,
-
                         PhoneNumberID = phone.PhoneNumberID,
-
                         DateTimeSend = model.DateTimeSend,
-
                         SmsProviderID = model.SmsProviderID,
-
                         SendImportanceID = model.SendImportanceID
                     };
 
@@ -94,8 +90,6 @@ namespace SMSAPI.Controller.SMS
                         failedCount++;
                         failedPhones.Add(phone.PhoneNumber);
                     }
-
-
 
                 }
                 catch (Exception)
