@@ -74,6 +74,17 @@ namespace SystemManagment.Controller
         }
 
 
+
+        [HttpGet("Search")]
+        public async Task<IActionResult> Search( [FromQuery] string? title, [FromQuery] int page = 1, [FromQuery] int pageSize = 15, CancellationToken cancellationToken = default)
+        {
+            var result =
+                await _groupRepository.SearchAsync( title, page, pageSize, cancellationToken);
+
+            return Ok(result);
+        }
+
+
     }
 }
 

@@ -1,4 +1,5 @@
 ﻿using Entities.Basic.Personel;
+using Entities.DTO;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,6 +33,55 @@ namespace DAL.Repository.Basic.Personal
                 .Distinct()
                 .ToListAsync(cancellationToken);
         }
+
+
+
+        public async Task<PagedResultDto<GroupSearchDto>> SearchAsync( string? title, int page, int pageSize, CancellationToken cancellationToken)
+        {
+            if (page < 1)
+                page = 1;
+
+            if (pageSize < 1)
+                pageSize = 15;
+
+            if (pageSize > 50)
+                pageSize = 50;
+
+            var query = TableNoTracking.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(title))
+            {
+                title = title.Trim();
+
+                query = query.Where(x => x.Title.Contains(title));
+            }
+
+            var totalCount = await query.CountAsync(cancellationToken);
+
+            var items = await query
+                .OrderBy(x => x.Title)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .Select(x => new GroupSearchDto
+                {
+                    ID = x.ID,
+                    Title = x.Title
+                })
+                .ToListAsync(cancellationToken);
+
+            return new PagedResultDto<GroupSearchDto>
+            {
+                Items = items,
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = totalCount
+            };
+        }
+
+
+
+
+
 
     }
 }
