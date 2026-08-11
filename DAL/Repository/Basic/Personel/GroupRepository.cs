@@ -13,21 +13,22 @@ namespace DAL.Repository.Basic.Personal
             : base(dbContext)
         {
         }
-
-        public async Task<List<string>> GetPhoneNumbersByGroupIDAsync(
-            long groupID,
-            CancellationToken cancellationToken)
+        public async Task<List<Entities.DTO.GroupPhoneDto>>  GetPhoneNumbersByGroupIDAsync(long groupID, CancellationToken cancellationToken)
         {
-            return await DbContext.PersonelGroup
-                .AsNoTracking()
+            return await TableNoTrackingOf<PersonGroup>()
                 .Where(pg =>
                     pg.GroupID == groupID &&
                     pg.PersonGroup_Person.IsActive)
                 .SelectMany(pg =>
                     pg.PersonGroup_Person.Person_PhoneNumbers)
-                .Select(phone => phone.Nummber)
+                .Select(phone => new Entities.DTO.GroupPhoneDto
+                {
+                    PhoneNumberID = phone.ID,
+                    PhoneNumber = phone.Nummber
+                })
                 .Distinct()
                 .ToListAsync(cancellationToken);
         }
+
     }
 }
