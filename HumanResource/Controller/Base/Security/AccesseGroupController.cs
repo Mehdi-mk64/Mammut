@@ -11,11 +11,13 @@ using System.Threading.Tasks;
 
 namespace SystemManagment.Controller.Base.Security
 {
+    [ApiController]
+    [Route("[controller]")]
     public class AccesseGroupController : ControllerBase
     {
         private readonly AccesseGroupRepository _accesseGroupRepository;
 
-        public AccesseGroupController( IRepository<PersonGroup> repository, AccesseGroupRepository accesseGroupRepository)
+        public AccesseGroupController(AccesseGroupRepository accesseGroupRepository)
             
         {
             _accesseGroupRepository = accesseGroupRepository;

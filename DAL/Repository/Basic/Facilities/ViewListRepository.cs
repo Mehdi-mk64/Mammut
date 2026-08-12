@@ -72,7 +72,7 @@ namespace DAL.Repository.Basic.Facilities
             }
 
 
-
+            messageSend.UserID = 1;
             PhonNumbers phonNumbers = new PhonNumbers();
             phonNumbers = _phonNummberRepository.GetByNumber(message.PhoneNumber);
             if (phonNumbers != null)
@@ -100,7 +100,7 @@ namespace DAL.Repository.Basic.Facilities
             try
             {
                 messageSend.SmsProviderID = (messageSend.SmsProviderID == 0 ? null : messageSend.SmsProviderID);
-                _messageSendRepository.Add(messageSend);
+                await _messageSendRepository.SendAsync(messageSend,cancellationToken);
                 message.HasError = false;
                 message.IsComlpete = true;
                 message.MessageSendID = messageSend.ID;
